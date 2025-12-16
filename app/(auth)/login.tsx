@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -10,11 +11,25 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+=======
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+<<<<<<< HEAD
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
   const insets = useSafeAreaInsets(); // lấy khoảng trống notch
@@ -62,6 +77,13 @@ export default function Login() {
     } catch (error) {
       setErrorMessage("Lỗi kết nối, vui lòng kiểm tra mạng");
     }
+=======
+  const router = useRouter();
+
+  const handleLogin = () => {
+    // Sau khi đăng nhập thành công, chuyển sang màn hình chính
+router.replace("/(tabs)/home");
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
   };
 
   const handleSignUp = () => {
@@ -69,6 +91,7 @@ export default function Login() {
   };
 
   return (
+<<<<<<< HEAD
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
         style={styles.container}
@@ -178,13 +201,126 @@ export default function Login() {
         </View>
       </ScrollView>
     </SafeAreaView>
+=======
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.logo}>
+          <Text style={styles.logoText}>🍔</Text>
+        </View>
+        <Text style={styles.title}>Welcome Back</Text>
+        <Text style={styles.subtitle}>Sign in to continue</Text>
+      </View>
+
+      {/* Form */}
+      <View style={styles.form}>
+        {/* Email Input */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Email</Text>
+          <View style={styles.inputWrapper}>
+            <Ionicons
+              name="mail-outline"
+              size={20}
+              color="gray"
+              style={styles.iconLeft}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+        </View>
+
+        {/* Password Input */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Password</Text>
+          <View style={styles.inputWrapper}>
+            <Ionicons
+              name="lock-closed-outline"
+              size={20}
+              color="gray"
+              style={styles.iconLeft}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.iconRight}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={20}
+                color="gray"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Forgot Password */}
+        <View style={styles.forgotWrapper}>
+          <TouchableOpacity>
+            <Text style={styles.forgotText}>Forgot Password?</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Login Button */}
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <Text style={styles.loginText}>Sign In</Text>
+        </TouchableOpacity>
+
+        {/* Divider */}
+        <View style={styles.divider}>
+          <View style={styles.line} />
+          <Text style={styles.dividerText}>or continue with</Text>
+          <View style={styles.line} />
+        </View>
+
+        {/* Social Login */}
+        <View style={styles.socialRow}>
+          <TouchableOpacity style={styles.socialButton}>
+            <Ionicons name="logo-google" size={20} color="#4285F4" />
+            <Text>Google</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.socialButton}>
+            <Ionicons name="logo-apple" size={20} color="black" />
+            <Text>Apple</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Sign Up Link */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          Don't have an account?{" "}
+          <Text style={styles.signUp} onPress={handleSignUp}>
+            Sign Up
+          </Text>
+        </Text>
+      </View>
+    </ScrollView>
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
   );
 }
 
 const styles = StyleSheet.create({
+<<<<<<< HEAD
   safeArea: { flex: 1, backgroundColor: "white" },
   container: {
     flex: 1,
+=======
+  container: {
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
     backgroundColor: "white",
   },
   header: {
@@ -240,6 +376,16 @@ const styles = StyleSheet.create({
   iconRight: {
     marginLeft: 8,
   },
+<<<<<<< HEAD
+=======
+  forgotWrapper: {
+    alignItems: "flex-end",
+  },
+  forgotText: {
+    color: "orange",
+    fontSize: 14,
+  },
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
   loginButton: {
     backgroundColor: "orange",
     paddingVertical: 14,

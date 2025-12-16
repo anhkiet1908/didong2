@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -11,6 +12,19 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+=======
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
 
 const categories = [
   { id: 1, name: "All", emoji: "🍽️" },
@@ -21,6 +35,7 @@ const categories = [
   { id: 6, name: "Salad", emoji: "🥗" },
 ];
 
+<<<<<<< HEAD
 export default function Home() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -70,6 +85,79 @@ export default function Home() {
 
     fetchRestaurants();
   }, []);
+=======
+export const restaurants = [
+  {
+    id: 1,
+    name: "The Burger House",
+    category: "Burgers",
+    image:
+      "https://images.unsplash.com/photo-1671106672702-5626deb87b0e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+    rating: 4.8,
+    deliveryTime: "20-30 min",
+    deliveryFee: "$2.99",
+    distance: "1.2 km",
+    featured: true,
+  },
+  {
+    id: 2,
+    name: "Pizza Paradise",
+    category: "Pizza",
+    image:
+      "https://images.unsplash.com/photo-1634435334343-27e5d92a7870?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+    rating: 4.6,
+    deliveryTime: "25-35 min",
+    deliveryFee: "$3.49",
+    distance: "2.1 km",
+    featured: true,
+  },
+  {
+    id: 3,
+    name: "Sushi Master",
+    category: "Sushi",
+    image:
+      "https://images.unsplash.com/photo-1625937751876-4515cd8e78bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+    rating: 4.9,
+    deliveryTime: "30-40 min",
+    deliveryFee: "$4.99",
+    distance: "3.5 km",
+    featured: false,
+  },
+  {
+    id: 4,
+    name: "Pasta Italia",
+    category: "Pasta",
+    image:
+      "https://images.unsplash.com/photo-1749169337822-d875fd6f4c9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+    rating: 4.7,
+    deliveryTime: "20-30 min",
+    deliveryFee: "$2.49",
+    distance: "1.8 km",
+    featured: false,
+  },
+  {
+    id: 5,
+    name: "Fresh Salad Bar",
+    category: "Salad",
+    image:
+      "https://images.unsplash.com/photo-1640718153995-db4d3f0a6337?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+    rating: 4.5,
+    deliveryTime: "15-25 min",
+    deliveryFee: "$1.99",
+    distance: "0.9 km",
+    featured: false,
+  },
+];
+
+interface HomeProps {
+  onRestaurantClick: (id: number) => void;
+}
+
+
+export default function Home({ onRestaurantClick }: HomeProps) {
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
 
   const filteredRestaurants = restaurants.filter((restaurant) => {
     const matchesCategory =
@@ -82,6 +170,7 @@ export default function Home() {
 
   const featuredRestaurants = filteredRestaurants.filter((r) => r.featured);
 
+<<<<<<< HEAD
   const handleRestaurantClick = (id: string) => {
     router.push(`/restaurant-detail/${id}`);
   };
@@ -89,6 +178,10 @@ export default function Home() {
   return (
         <SafeAreaView style={{ flex: 1, backgroundColor: "#f9f9f9" }}>
     
+=======
+
+ return (
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
     <ScrollView style={{ flex: 1, backgroundColor: "#f9f9f9" }}>
       {/* Header */}
       <View style={styles.header}>
@@ -96,8 +189,13 @@ export default function Home() {
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Ionicons name="location" size={20} color="orange" />
             <View style={{ marginLeft: 8 }}>
+<<<<<<< HEAD
               <Text style={{ fontSize: 12, color: "gray" }}>Giao hàng đến</Text>
               <Text style={{ fontSize: 14 }}>123 Đường Tăng Nhơn Phú, Căn hộ 4B</Text>
+=======
+              <Text style={{ fontSize: 12, color: "gray" }}>Deliver to</Text>
+              <Text style={{ fontSize: 14 }}>Current Location</Text>
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
             </View>
           </View>
           <TouchableOpacity style={styles.flashButton}>
@@ -122,7 +220,15 @@ export default function Home() {
       </View>
 
       {/* Categories */}
+<<<<<<< HEAD
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categories}>
+=======
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.categories}
+      >
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
         {categories.map((category) => (
           <TouchableOpacity
             key={category.id}
@@ -145,6 +251,7 @@ export default function Home() {
         ))}
       </ScrollView>
 
+<<<<<<< HEAD
       {/* Loading */}
       {loading && (
         <View style={{ padding: 16 }}>
@@ -159,22 +266,42 @@ export default function Home() {
             <Text style={styles.sectionTitle}>Nhà hàng nổi bật</Text>
             <TouchableOpacity>
               <Text style={{ color: "orange" }}>Xem tất cả</Text>
+=======
+      {/* Featured Section */}
+      {featuredRestaurants.length > 0 && selectedCategory === "All" && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Featured Restaurants</Text>
+            <TouchableOpacity>
+              <Text style={{ color: "orange" }}>See All</Text>
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
             </TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {featuredRestaurants.map((restaurant) => (
               <TouchableOpacity
                 key={restaurant.id}
+<<<<<<< HEAD
                 onPress={() => handleRestaurantClick(restaurant.id)}
                 style={styles.featuredCard}
               >
                 <Image source={{ uri: restaurant.image }} style={styles.featuredImage} />
+=======
+                onPress={() => onRestaurantClick(restaurant.id)}
+                style={styles.featuredCard}
+              >
+                <Image
+                  source={{ uri: restaurant.image }}
+                  style={styles.featuredImage}
+                />
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
                 <View style={styles.ratingBadge}>
                   <Ionicons name="star" size={14} color="gold" />
                   <Text style={{ fontSize: 12 }}>{restaurant.rating}</Text>
                 </View>
                 <View style={{ padding: 8 }}>
                   <Text style={{ fontWeight: "600" }}>{restaurant.name}</Text>
+<<<<<<< HEAD
                   <Text style={{ fontSize: 12, color: "gray" }}>{restaurant.category}</Text>
                   <View style={styles.infoRow}>
                     <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -182,6 +309,21 @@ export default function Home() {
                       <Text style={{ fontSize: 12, marginLeft: 4 }}>{restaurant.deliveryTime}</Text>
                     </View>
                     <Text style={{ fontSize: 12 }}>{restaurant.deliveryFee} vận chuyển</Text>
+=======
+                  <Text style={{ fontSize: 12, color: "gray" }}>
+                    {restaurant.category}
+                  </Text>
+                  <View style={styles.infoRow}>
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                      <Ionicons name="time" size={14} color="gray" />
+                      <Text style={{ fontSize: 12, marginLeft: 4 }}>
+                        {restaurant.deliveryTime}
+                      </Text>
+                    </View>
+                    <Text style={{ fontSize: 12 }}>
+                      {restaurant.deliveryFee} delivery
+                    </Text>
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
                   </View>
                 </View>
               </TouchableOpacity>
@@ -191,6 +333,7 @@ export default function Home() {
       )}
 
       {/* All Restaurants */}
+<<<<<<< HEAD
       {!loading && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tất cả các nhà hàng</Text>
@@ -232,6 +375,51 @@ export default function Home() {
 }
 
 
+=======
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>All Restaurants</Text>
+        {filteredRestaurants.map((restaurant) => (
+          <TouchableOpacity
+            key={restaurant.id}
+            onPress={() => onRestaurantClick(restaurant.id)}
+            style={styles.restaurantCard}
+          >
+            <Image
+              source={{ uri: restaurant.image }}
+              style={styles.restaurantImage}
+            />
+            <View style={{ flex: 1, padding: 8 }}>
+              <View style={styles.restaurantHeader}>
+                <View>
+                  <Text style={{ fontWeight: "600" }}>{restaurant.name}</Text>
+                  <Text style={{ fontSize: 12, color: "gray" }}>
+                    {restaurant.category}
+                  </Text>
+                </View>
+                <View style={styles.ratingSmall}>
+                  <Ionicons name="star" size={12} color="orange" />
+                  <Text style={{ fontSize: 12 }}>{restaurant.rating}</Text>
+                </View>
+              </View>
+              <View style={styles.infoRow}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Ionicons name="time" size={14} color="gray" />
+                  <Text style={{ fontSize: 12, marginLeft: 4 }}>
+                    {restaurant.deliveryTime}
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 12 }}>• {restaurant.deliveryFee}</Text>
+                <Text style={{ fontSize: 12 }}>• {restaurant.distance}</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </ScrollView>
+  );
+}
+
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
 const styles = StyleSheet.create({
   header: {
     backgroundColor: "white",

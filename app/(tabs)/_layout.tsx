@@ -1,6 +1,9 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
+<<<<<<< HEAD
 import { MaterialIcons } from "@expo/vector-icons";
+=======
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -47,6 +50,7 @@ export default function TabLayout() {
         }}
       />
       {/* Bạn có thể thêm tab mới như sau: */}
+<<<<<<< HEAD
       <Tabs.Screen
         name="cart"
         options={{
@@ -66,6 +70,9 @@ export default function TabLayout() {
   }}
 />
 
+=======
+      
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
       <Tabs.Screen
         name="profile"
         options={{

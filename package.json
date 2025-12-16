@@ -9,7 +9,10 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint"
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -32,6 +35,7 @@
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
     "react-native-gesture-handler": "~2.28.0",
+<<<<<<< HEAD
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
@@ -44,6 +48,19 @@
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "typescript": "~5.9.2"
+=======
+    "react-native-worklets": "0.5.1",
+    "react-native-reanimated": "~4.1.1",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-web": "~0.21.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.0",
+    "typescript": "~5.9.2",
+    "eslint": "^9.25.0",
+    "eslint-config-expo": "~10.0.0"
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
   },
   "private": true
 }

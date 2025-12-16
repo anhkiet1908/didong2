@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -118,6 +119,82 @@ function MenuItem({
   label: string;
   description: string;
 }) {
+=======
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+
+export default function Profile() {
+  const router = useRouter();
+
+  const handleLogout = () => {
+router.replace("/(auth)/login");
+  };
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Profile</Text>
+      </View>
+
+      {/* User Info */}
+      <View style={styles.userInfo}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>JD</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.userName}>John Doe</Text>
+          <Text style={styles.userEmail}>john.doe@email.com</Text>
+          <TouchableOpacity>
+            <Text style={styles.editProfile}>Edit Profile</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Stats */}
+      <View style={styles.stats}>
+        <View style={styles.statItem}>
+          <Text style={styles.statValue}>24</Text>
+          <Text style={styles.statLabel}>Orders</Text>
+        </View>
+        <View style={[styles.statItem, styles.statBorder]}>
+          <Text style={styles.statValue}>8</Text>
+          <Text style={styles.statLabel}>Favorites</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statValue}>$420</Text>
+          <Text style={styles.statLabel}>Spent</Text>
+        </View>
+      </View>
+
+      {/* Menu Items */}
+      <View style={styles.menu}>
+        <MenuItem icon="location-outline" label="Address" description="Manage your delivery addresses" />
+        <MenuItem icon="card-outline" label="Payment Methods" description="Add or edit payment methods" />
+        <MenuItem icon="heart-outline" label="Favorites" description="Your favorite restaurants" />
+        <MenuItem icon="notifications-outline" label="Notifications" description="Manage notification settings" />
+        <MenuItem icon="help-circle-outline" label="Help & Support" description="Get help with your orders" />
+        <MenuItem icon="settings-outline" label="Settings" description="App preferences and settings" />
+      </View>
+
+      {/* Logout Button */}
+      <View style={styles.logout}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={20} color="red" />
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Version */}
+      <Text style={styles.version}>Version 1.0.0</Text>
+    </ScrollView>
+  );
+}
+
+function MenuItem({ icon, label, description }: { icon: any; label: string; description: string }) {
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
   return (
     <TouchableOpacity style={styles.menuItem}>
       <View style={styles.menuIcon}>
@@ -133,6 +210,7 @@ function MenuItem({
 }
 
 const styles = StyleSheet.create({
+<<<<<<< HEAD
   safeArea: { flex: 1, backgroundColor: "#f9fafb" },
   container: { flex: 1, backgroundColor: "#f9f9f9" },
   header: {
@@ -149,6 +227,12 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "center",
   },
+=======
+  container: { flex: 1, backgroundColor: "#f9f9f9" },
+  header: { backgroundColor: "white", padding: 16, borderBottomWidth: 1, borderColor: "#eee" },
+  headerTitle: { fontSize: 18, fontWeight: "600" },
+  userInfo: { flexDirection: "row", backgroundColor: "white", padding: 16, alignItems: "center" },
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
   avatar: {
     width: 64,
     height: 64,
@@ -197,10 +281,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   logoutText: { color: "red", marginLeft: 8, fontSize: 16 },
+<<<<<<< HEAD
   version: {
     textAlign: "center",
     color: "gray",
     fontSize: 12,
     marginBottom: 16,
   },
+=======
+  version: { textAlign: "center", color: "gray", fontSize: 12, marginBottom: 16 },
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
 });
