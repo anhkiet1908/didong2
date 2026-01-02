@@ -2,8 +2,16 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+<<<<<<< HEAD
     "esModuleInterop": true,
     "jsx": "react-native"
+=======
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
   },
   "include": [
     "**/*.ts",

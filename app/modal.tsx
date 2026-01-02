@@ -1,4 +1,5 @@
 import { Link } from 'expo-router';
+<<<<<<< HEAD
 import { StatusBar } from 'expo-status-bar';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 
@@ -23,6 +24,21 @@ export default function ModalScreen() {
       {/* Chỉnh thanh status bar cho đẹp trên iOS */}
       <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
     </View>
+=======
+import { StyleSheet } from 'react-native';
+
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+
+export default function ModalScreen() {
+  return (
+    <ThemedView style={styles.container}>
+      <ThemedText type="title">This is a modal</ThemedText>
+      <Link href="/" dismissTo style={styles.link}>
+        <ThemedText type="link">Go to home screen</ThemedText>
+      </Link>
+    </ThemedView>
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
   );
 }
 
@@ -31,6 +47,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+<<<<<<< HEAD
     backgroundColor: '#fff', // Màu nền trắng
     padding: 20,
   },
@@ -52,13 +69,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
+=======
+    padding: 20,
+  },
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
   link: {
     marginTop: 15,
     paddingVertical: 15,
   },
+<<<<<<< HEAD
   linkText: {
     fontSize: 16,
     color: '#2e78b7', // Màu xanh dương giống link
     fontWeight: '600',
   },
 });
+=======
+});
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575

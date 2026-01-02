@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 import React from 'react';
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
 // Định nghĩa các kiểu props
+=======
+import { StyleSheet, Text, type TextProps } from 'react-native';
+
+import { useThemeColor } from '@/hooks/use-theme-color';
+
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
@@ -15,9 +22,13 @@ export function ThemedText({
   type = 'default',
   ...rest
 }: ThemedTextProps) {
+<<<<<<< HEAD
   
   // Mặc định dùng màu đen (bỏ qua logic check theme phức tạp để tránh lỗi)
   const color = '#11181C'; 
+=======
+  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
 
   return (
     <Text
@@ -59,4 +70,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#0a7ea4',
   },
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575

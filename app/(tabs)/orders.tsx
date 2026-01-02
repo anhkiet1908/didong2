@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
 import { Entypo, FontAwesome, Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
@@ -9,6 +13,21 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+<<<<<<< HEAD
+=======
+=======
+import React from "react";
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { Ionicons, MaterialIcons, Entypo, FontAwesome } from "@expo/vector-icons";
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
 
 const orders = [
   {
@@ -19,11 +38,27 @@ const orders = [
     total: 27.98,
     date: "Today, 2:30 PM",
     estimatedTime: "15 min",
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
     image: "https://images.unsplash.com/photo-1671106672702-5626deb87b0e?...",
     driver: {
       name: "John Smith",
       phone: "+1 234 567 8900",
       image: "https://images.unsplash.com/photo-1727694619845-2a35923f9734?...",
+<<<<<<< HEAD
+=======
+=======
+    image:
+      "https://images.unsplash.com/photo-1671106672702-5626deb87b0e?...",
+    driver: {
+      name: "John Smith",
+      phone: "+1 234 567 8900",
+      image:
+        "https://images.unsplash.com/photo-1727694619845-2a35923f9734?...",
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
     },
   },
   {
@@ -33,7 +68,16 @@ const orders = [
     items: ["Margherita Pizza", "Pepperoni Pizza"],
     total: 35.98,
     date: "Yesterday, 7:45 PM",
+<<<<<<< HEAD
     image: "https://images.unsplash.com/photo-1634435334343-27e5d92a7870?...",
+=======
+<<<<<<< HEAD
+    image: "https://images.unsplash.com/photo-1634435334343-27e5d92a7870?...",
+=======
+    image:
+      "https://images.unsplash.com/photo-1634435334343-27e5d92a7870?...",
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
   },
   {
     id: "ORD-2024-003",
@@ -42,7 +86,16 @@ const orders = [
     items: ["California Roll", "Salmon Nigiri Set"],
     total: 33.98,
     date: "Nov 24, 2024",
+<<<<<<< HEAD
     image: "https://images.unsplash.com/photo-1625937751876-4515cd8e78bd?...",
+=======
+<<<<<<< HEAD
+    image: "https://images.unsplash.com/photo-1625937751876-4515cd8e78bd?...",
+=======
+    image:
+      "https://images.unsplash.com/photo-1625937751876-4515cd8e78bd?...",
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
   },
 ];
 
@@ -53,6 +106,10 @@ interface OrdersProps {
 export default function Orders({ onOrderClick }: OrdersProps) {
   const activeOrder = orders.find((o) => o.status === "delivering");
   const pastOrders = orders.filter((o) => o.status !== "delivering");
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
   const insets = useSafeAreaInsets(); // lấy khoảng trống notch
 
   return (
@@ -194,20 +251,179 @@ export default function Orders({ onOrderClick }: OrdersProps) {
         </ScrollView>
       </View>
     </SafeAreaView>
+<<<<<<< HEAD
+=======
+=======
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Orders</Text>
+      </View>
+
+      <ScrollView contentContainerStyle={{ padding: 16 }}>
+        {/* Active Order */}
+        {activeOrder && (
+          <View style={{ marginBottom: 24 }}>
+            <Text style={styles.sectionTitle}>Active Order</Text>
+            <View style={styles.card}>
+              {/* Order Status */}
+              <View style={styles.statusBar}>
+                <View style={styles.rowBetween}>
+                  <View style={styles.row}>
+                    <Ionicons name="cube" size={18} color="#fff" />
+                    <Text style={styles.statusText}>Order {activeOrder.id}</Text>
+                  </View>
+                  <Text style={styles.statusBadge}>Delivering</Text>
+                </View>
+                <Text style={styles.statusSub}>
+                  Estimated arrival in {activeOrder.estimatedTime}
+                </Text>
+              </View>
+
+              {/* Progress Steps */}
+              <View style={styles.cardSection}>
+                <View style={styles.rowBetween}>
+                  <View style={styles.row}>
+                    <FontAwesome name="check-circle" size={18} color="green" />
+                    <Text style={styles.stepText}>Order Confirmed</Text>
+                  </View>
+                  <Text style={styles.stepTime}>2:30 PM</Text>
+                </View>
+                <View style={styles.rowBetween}>
+                  <View style={styles.row}>
+                    <FontAwesome name="check-circle" size={18} color="green" />
+                    <Text style={styles.stepText}>Preparing</Text>
+                  </View>
+                  <Text style={styles.stepTime}>2:35 PM</Text>
+                </View>
+                <View style={styles.rowBetween}>
+                  <View style={styles.row}>
+                    <Ionicons name="time" size={18} color="#f97316" />
+                    <Text style={styles.stepText}>On the way</Text>
+                  </View>
+                  <Text style={styles.stepTime}>2:45 PM</Text>
+                </View>
+              </View>
+
+              {/* Driver Info */}
+              {activeOrder.driver && (
+                <View style={styles.cardSection}>
+                  <Text style={styles.subText}>Your Delivery Partner</Text>
+                  <View style={styles.rowBetween}>
+                    <View style={styles.row}>
+                      <Image
+                        source={{ uri: activeOrder.driver.image }}
+                        style={styles.driverImage}
+                      />
+                      <View>
+                        <Text>{activeOrder.driver.name}</Text>
+                        <View style={styles.row}>
+                          <Entypo name="location-pin" size={14} color="#666" />
+                          <Text style={styles.subText}>2.3 km away</Text>
+                        </View>
+                      </View>
+                    </View>
+                    <TouchableOpacity style={styles.callButton}>
+                      <Ionicons name="call" size={20} color="#f97316" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
+              {/* Order Details */}
+              <View style={styles.cardSection}>
+                <View style={styles.row}>
+                  <Image
+                    source={{ uri: activeOrder.image }}
+                    style={styles.orderImage}
+                  />
+                  <View style={{ flex: 1, marginLeft: 8 }}>
+                    <Text style={styles.text}>{activeOrder.restaurant}</Text>
+                    <Text style={styles.subText}>
+                      {activeOrder.items.join(", ")}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.rowBetween}>
+                  <Text style={styles.subText}>Total</Text>
+                  <Text style={styles.price}>${activeOrder.total.toFixed(2)}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Past Orders */}
+        <Text style={styles.sectionTitle}>Past Orders</Text>
+        {pastOrders.map((order) => (
+          <TouchableOpacity
+            key={order.id}
+            onPress={() => onOrderClick(order.id)}
+            style={styles.card}
+          >
+            <View style={styles.row}>
+              <Image source={{ uri: order.image }} style={styles.orderImageLarge} />
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                <View style={styles.rowBetween}>
+                  <View>
+                    <Text style={styles.text}>{order.restaurant}</Text>
+                    <Text style={styles.subText}>{order.date}</Text>
+                  </View>
+                  <View style={styles.row}>
+                    <FontAwesome name="check-circle" size={14} color="green" />
+                    <Text style={[styles.subText, { color: "green" }]}>Completed</Text>
+                  </View>
+                </View>
+                <Text style={styles.subText}>{order.items.join(", ")}</Text>
+                <View style={styles.rowBetween}>
+                  <Text style={styles.price}>${order.total.toFixed(2)}</Text>
+                  <TouchableOpacity style={styles.reorderButton}>
+                    <Text style={styles.reorderText}>Reorder</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
   );
 }
 
 const styles = StyleSheet.create({
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
   safeArea: { flex: 1, backgroundColor: "#f9fafb" },
   container: { flex: 1, backgroundColor: "#f9fafb" },
   header: {
     paddingHorizontal: 16,
     paddingBottom: 12,
+<<<<<<< HEAD
+=======
+=======
+  container: { flex: 1, backgroundColor: "#f9fafb" },
+  header: {
+    padding: 16,
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderColor: "#eee",
   },
+<<<<<<< HEAD
 
+=======
+<<<<<<< HEAD
+
+=======
+>>>>>>> 6f2b526d7526b32a3ef58bec694f196ec4989b40
+>>>>>>> 4c115ce663d979ab39e8ac430b0cd2c7b2867575
   headerTitle: { fontSize: 18, fontWeight: "600" },
   sectionTitle: { fontSize: 16, fontWeight: "600", marginBottom: 12 },
   card: {
