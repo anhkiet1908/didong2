@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+<<<<<<< HEAD
 import { useAuth } from "../../components/ui/AuthContext"; // ✅ lấy user từ context
 
 export default function Profile() {
@@ -18,6 +19,14 @@ export default function Profile() {
 
   const handleLogout = () => {
     logout();
+=======
+
+export default function Profile() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets(); // lấy khoảng trống notch
+
+  const handleLogout = () => {
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
     router.replace("/(auth)/login");
   };
 
@@ -30,12 +39,17 @@ export default function Profile() {
       >
         {/* Header */}
         <View style={[styles.header, { paddingTop: insets.top }]}>
+<<<<<<< HEAD
           <Text style={styles.headerTitle}>Hồ Sơ</Text>
+=======
+          <Text style={styles.headerTitle}>Hồ Sơ</Text>
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
         </View>
 
         {/* User Info */}
         <View style={styles.userInfo}>
           <View style={styles.avatar}>
+<<<<<<< HEAD
             <Text style={styles.avatarText}>
               {user?.name?.substring(0, 2).toUpperCase() || "??"}
             </Text>
@@ -43,6 +57,13 @@ export default function Profile() {
           <View style={{ flex: 1 }}>
             <Text style={styles.userName}>{user?.name || "Chưa có tên"}</Text>
             <Text style={styles.userEmail}>{user?.email || "Chưa có email"}</Text>
+=======
+            <Text style={styles.avatarText}>JD</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.userName}>John Doe</Text>
+            <Text style={styles.userEmail}>john.doe@email.com</Text>
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
             <TouchableOpacity>
               <Text style={styles.editProfile}>Chỉnh sửa hồ sơ</Text>
             </TouchableOpacity>
@@ -61,12 +82,17 @@ export default function Profile() {
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>$420</Text>
+<<<<<<< HEAD
             <Text style={styles.statLabel}>Đã chi</Text>
+=======
+            <Text style={styles.statLabel}>Đã chi</Text>
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
           </View>
         </View>
 
         {/* Menu Items */}
         <View style={styles.menu}>
+<<<<<<< HEAD
         <MenuItem
   icon="location-outline"
   label="Địa chỉ"
@@ -109,13 +135,49 @@ export default function Profile() {
   onPress={() => router.push("/setting")}
 />
 
+=======
+          <MenuItem
+            icon="location-outline"
+            label="Địa chỉ"
+            description="Quản lý địa chỉ giao hàng của bạn"
+          />
+          <MenuItem
+            icon="card-outline"
+            label="Phương thức thanh toán"
+            description="Thêm hoặc chỉnh sửa phương thức thanh toán"
+          />
+          <MenuItem
+            icon="heart-outline"
+            label="Yêu thích"
+            description="Những nhà hàng yêu thích của bạn"
+          />
+          <MenuItem
+            icon="notifications-outline"
+            label="Thông báo"
+            description="Quản lý cài đặt thông báo"
+          />
+          <MenuItem
+            icon="help-circle-outline"
+            label="Trợ giúp & Hỗ trợ"
+            description="Nhận trợ giúp về đơn hàng của bạn"
+          />
+          <MenuItem
+            icon="settings-outline"
+            label="Cài đặt"
+            description="Tùy chọn và cài đặt ứng dụng"
+          />
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
         </View>
 
         {/* Logout Button */}
         <View style={styles.logout}>
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Ionicons name="log-out-outline" size={20} color="red" />
+<<<<<<< HEAD
             <Text style={styles.logoutText}>Đăng xuất</Text>
+=======
+            <Text style={styles.logoutText}>Đăng xuất</Text>
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
           </TouchableOpacity>
         </View>
 
@@ -130,15 +192,24 @@ function MenuItem({
   icon,
   label,
   description,
+<<<<<<< HEAD
   onPress,
+=======
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
 }: {
   icon: any;
   label: string;
   description: string;
+<<<<<<< HEAD
   onPress: () => void;
 }) {
   return (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+=======
+}) {
+  return (
+    <TouchableOpacity style={styles.menuItem}>
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
       <View style={styles.menuIcon}>
         <Ionicons name={icon} size={22} color="orange" />
       </View>
@@ -151,7 +222,10 @@ function MenuItem({
   );
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#f9fafb" },
   container: { flex: 1, backgroundColor: "#f9f9f9" },

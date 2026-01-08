@@ -7,7 +7,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+<<<<<<< HEAD
   Alert,
+=======
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,6 +21,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+<<<<<<< HEAD
   const insets = useSafeAreaInsets(); 
 
   const handleRegister = async () => {
@@ -27,6 +31,11 @@ export default function Register() {
       return;
     }
 
+=======
+  const insets = useSafeAreaInsets(); // lấy khoảng trống notch
+
+  const handleRegister = async () => {
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
     try {
       const response = await fetch(
         `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyAn3CAbb21GsyLEAWalgRqb_ox_fwKu1E4`,
@@ -45,6 +54,7 @@ export default function Register() {
 
       if (result.idToken) {
         console.log("Đăng ký thành công:", result.email);
+<<<<<<< HEAD
         
         // ✅ THÔNG BÁO THÀNH CÔNG
         Alert.alert(
@@ -76,6 +86,17 @@ export default function Register() {
       Alert.alert("Lỗi kết nối", "Vui lòng kiểm tra lại mạng internet.");
     }
   };
+=======
+        router.replace("/(auth)/login");
+      } else {
+        console.log("Lỗi đăng ký:", result.error?.message);
+      }
+    } catch (error) {
+      console.log("Lỗi kết nối:", (error as any).message);
+    }
+  };
+
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
   const handleLogin = () => {
     router.push("/(auth)/login");
   };

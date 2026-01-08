@@ -2,7 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+<<<<<<< HEAD
   Alert,
+=======
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
   ScrollView,
   StyleSheet,
   Text,
@@ -11,7 +14,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+<<<<<<< HEAD
 import { useAuth } from "../../components/ui/AuthContext"; // ✅ dùng AuthContext để lưu user
+=======
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -19,8 +25,12 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
+<<<<<<< HEAD
   const insets = useSafeAreaInsets();
   const { login } = useAuth();
+=======
+  const insets = useSafeAreaInsets(); // lấy khoảng trống notch
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
 
   const handleLogin = async () => {
     setErrorMessage("");
@@ -41,6 +51,7 @@ export default function Login() {
       const result = await response.json();
 
       if (result.idToken) {
+<<<<<<< HEAD
         // ✅ Lưu thông tin user vào context
         login({
           id: result.localId,
@@ -63,6 +74,11 @@ export default function Login() {
         );
       } else {
         // ... (Giữ nguyên phần xử lý lỗi cũ của bạn)
+=======
+        console.log("Đăng nhập thành công:", result.email);
+        router.replace("/(tabs)/home");
+      } else {
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
         const errorCode = result.error?.message;
         switch (errorCode) {
           case "EMAIL_NOT_FOUND":
@@ -80,6 +96,7 @@ export default function Login() {
           default:
             setErrorMessage("Đăng nhập thất bại, vui lòng thử lại");
         }
+<<<<<<< HEAD
         // Thêm Alert báo lỗi (nếu muốn người dùng chú ý hơn)
         Alert.alert("Lỗi", "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
       }
@@ -88,6 +105,14 @@ export default function Login() {
       Alert.alert("Lỗi mạng", "Không thể kết nối đến máy chủ.");
     }
   };
+=======
+      }
+    } catch (error) {
+      setErrorMessage("Lỗi kết nối, vui lòng kiểm tra mạng");
+    }
+  };
+
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
   const handleSignUp = () => {
     router.push("/(auth)/register");
   };
@@ -165,12 +190,16 @@ export default function Login() {
           {errorMessage ? (
             <Text style={{ color: "red", marginTop: 10 }}>{errorMessage}</Text>
           ) : null}
+<<<<<<< HEAD
 {/* Code chèn vào Login.tsx */}
 <View style={{ alignItems: "flex-end", marginBottom: 20 }}>
   <TouchableOpacity onPress={() => router.push("/(auth)/ForgotPassword")}>
     <Text style={{ color: "orange", fontWeight: "600" }}>Quên mật khẩu?</Text>
   </TouchableOpacity>
 </View>
+=======
+
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
           {/* Login Button */}
           <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
             <Text style={styles.loginText}>Sign In</Text>
@@ -211,6 +240,7 @@ export default function Login() {
 }
 
 const styles = StyleSheet.create({
+<<<<<<< HEAD
   safeArea: { flex: 1, backgroundColor: "#f9fafb" },
   container: { flex: 1, backgroundColor: "#f9f9f9" },
   header: { alignItems: "center", marginBottom: 20 },
@@ -268,4 +298,118 @@ const styles = StyleSheet.create({
   footer: { alignItems: "center", marginTop: 20 },
   footerText: { color: "gray" },
   signUp: { color: "orange", fontWeight: "600" },
+=======
+  safeArea: { flex: 1, backgroundColor: "white" },
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  header: {
+    alignItems: "center",
+    marginBottom: 32,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    backgroundColor: "orange",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  logoText: {
+    fontSize: 32,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "gray",
+  },
+  form: {
+    gap: 16,
+  },
+  inputGroup: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 14,
+    color: "gray",
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f3f3f3",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+  },
+  iconLeft: {
+    marginRight: 8,
+  },
+  iconRight: {
+    marginLeft: 8,
+  },
+  loginButton: {
+    backgroundColor: "orange",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  loginText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 24,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#ddd",
+  },
+  dividerText: {
+    marginHorizontal: 12,
+    color: "gray",
+    fontSize: 12,
+  },
+  socialRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  socialButton: {
+    flex: 1,
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 12,
+  },
+  footer: {
+    marginTop: 32,
+    alignItems: "center",
+  },
+  footerText: {
+    color: "gray",
+  },
+  signUp: {
+    color: "orange",
+    fontWeight: "500",
+  },
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
 });

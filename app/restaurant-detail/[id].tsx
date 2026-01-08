@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import {
   Entypo,
   Feather,
@@ -23,6 +24,23 @@ import {
 } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { useCart } from "../../components/ui/CartContext";
+=======
+import React, { useEffect, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { Ionicons, FontAwesome, MaterialIcons, Feather, Entypo } from "@expo/vector-icons";
+import { useCart } from "../../components/ui/CartContext";
+import Toast from "react-native-toast-message";
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
 
 const { width } = Dimensions.get("window");
 
@@ -37,6 +55,7 @@ interface Product {
 }
 
 export default function RestaurantDetail() {
+<<<<<<< HEAD
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -46,6 +65,13 @@ export default function RestaurantDetail() {
   const [isFavorite, setIsFavorite] = useState(false);
 
   /* ================= FETCH DATA ================= */
+=======
+  const { id } = useLocalSearchParams(); // ✅ lấy restaurantId từ URL
+  const [restaurant, setRestaurant] = useState<any>(null);
+  const [items, setItems] = useState<Product[]>([]);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const router = useRouter();
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
 
   useEffect(() => {
     if (!id || typeof id !== "string") return;
@@ -56,6 +82,7 @@ export default function RestaurantDetail() {
           `https://firestore.googleapis.com/v1/projects/anhkiet-61730/databases/(default)/documents/restaurants/${id}?key=YOUR_API_KEY`
         );
         const result = await res.json();
+<<<<<<< HEAD
         if (!result.fields) return;
 
         const fields = result.fields;
@@ -77,6 +104,27 @@ export default function RestaurantDetail() {
         });
       } catch (e) {
         console.log("Fetch restaurant error", e);
+=======
+        const fields = result.fields;
+        if (!fields) return;
+
+        // ✅ Lấy Document ID từ name
+        const docId = result.name.split("/").pop();
+
+        setRestaurant({
+          id: docId, // dùng Document ID
+          name: fields.name?.stringValue || "",
+          category: fields.category?.stringValue || "",
+          image: fields.image?.stringValue || "",
+          rating: parseFloat(fields.rating?.doubleValue || fields.rating?.integerValue || "0"),
+          deliveryTime: fields.deliveryTime?.stringValue || "",
+          deliveryFee: fields.deliveryFee?.stringValue || "",
+          distance: fields.distance?.stringValue || "",
+          featured: fields.featured?.booleanValue || false,
+        });
+      } catch (err) {
+        console.log("❌ Lỗi fetch restaurant:", err);
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
       }
     };
 
@@ -86,6 +134,7 @@ export default function RestaurantDetail() {
           "https://firestore.googleapis.com/v1/projects/anhkiet-61730/databases/(default)/documents/product?key=YOUR_API_KEY"
         );
         const result = await res.json();
+<<<<<<< HEAD
 
         const data: Product[] = result.documents
           ? result.documents.map((doc: any) => {
@@ -102,13 +151,37 @@ export default function RestaurantDetail() {
                 image: f.image?.stringValue || "",
                 popular: f.popular?.booleanValue || false,
                 restaurantId: f.restaurantId?.stringValue || "",
+=======
+        const data: Product[] = result.documents
+          ? result.documents.map((doc: any) => {
+              const fields = doc.fields;
+              return {
+                id: doc.name.split("/").pop(),
+                name: fields.name?.stringValue || "",
+                description: fields.description?.stringValue || "",
+                price: fields.price?.doubleValue
+                  ? parseFloat(fields.price.doubleValue)
+                  : fields.price?.integerValue
+                  ? parseInt(fields.price.integerValue) / 100
+                  : 0,
+                image: fields.image?.stringValue || "",
+                popular: fields.popular?.booleanValue || false,
+                restaurantId: fields.restaurantId?.stringValue || "", // ✅ lấy Document ID từ product
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
               };
             })
           : [];
 
+<<<<<<< HEAD
         setItems(data.filter((i) => i.restaurantId === id));
       } catch (e) {
         console.log("Fetch product error", e);
+=======
+        // ✅ So sánh bằng Document ID
+        setItems(data.filter((item) => item.restaurantId === id));
+      } catch (err) {
+        console.log("❌ Lỗi fetch products:", err);
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
       }
     };
 
@@ -116,6 +189,7 @@ export default function RestaurantDetail() {
     fetchProducts();
   }, [id]);
 
+<<<<<<< HEAD
   /* ================= FAVORITE ================= */
 
   const toggleFavorite = async () => {
@@ -190,10 +264,25 @@ export default function RestaurantDetail() {
               onPress={() => router.back()}
               style={styles.iconButton}
             >
+=======
+  if (!restaurant) return <Text style={{ padding: 16 }}>Đang tải nhà hàng...</Text>;
+
+  const popularItems = items.filter((item) => item.popular);
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f9f9f9" }}>
+      <ScrollView style={{ flex: 1, backgroundColor: "#f9f9f9" }}>
+        {/* Header Image */}
+        <View style={{ position: "relative" }}>
+          <Image source={{ uri: restaurant.image }} style={{ width, height: 200 }} />
+          <View style={styles.headerButtons}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
               <Ionicons name="arrow-back" size={20} color="#333" />
             </TouchableOpacity>
 
             <TouchableOpacity
+<<<<<<< HEAD
               onPress={toggleFavorite}
               style={styles.iconButton}
             >
@@ -202,6 +291,12 @@ export default function RestaurantDetail() {
                 size={20}
                 color={isFavorite ? "red" : "#333"}
               />
+=======
+              onPress={() => setIsFavorite(!isFavorite)}
+              style={styles.iconButton}
+            >
+              <FontAwesome name="heart" size={20} color={isFavorite ? "red" : "#333"} />
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
             </TouchableOpacity>
           </View>
         </View>
@@ -218,7 +313,10 @@ export default function RestaurantDetail() {
               <Text style={styles.rating}>{restaurant.rating}</Text>
             </View>
           </View>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
           <View style={styles.meta}>
             <View style={styles.metaItem}>
               <Feather name="clock" size={16} color="#666" />
@@ -230,14 +328,32 @@ export default function RestaurantDetail() {
             </View>
             <View style={styles.metaItem}>
               <Feather name="info" size={16} color="#666" />
+<<<<<<< HEAD
               <Text style={styles.metaText}>
                 {restaurant.deliveryFee} delivery
               </Text>
+=======
+              <Text style={styles.metaText}>{restaurant.deliveryFee} delivery</Text>
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
             </View>
           </View>
         </View>
 
+<<<<<<< HEAD
         {/* Menu */}
+=======
+        {/* Popular Items */}
+        {popularItems.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Popular Items</Text>
+            {popularItems.map((item) => (
+              <MenuItem key={item.id} item={item} />
+            ))}
+          </View>
+        )}
+
+        {/* All Items */}
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Menu</Text>
           {items.map((item) => (
@@ -249,6 +365,7 @@ export default function RestaurantDetail() {
   );
 }
 
+<<<<<<< HEAD
 /* ================= MENU ITEM ================= */
 
 const MenuItem = ({ item }: { item: Product }) => {
@@ -261,6 +378,26 @@ const MenuItem = ({ item }: { item: Product }) => {
       type: "success",
       text1: "Đã thêm vào giỏ hàng",
       text2: `${item.name} đã được thêm 👌`,
+=======
+// ✅ MenuItem với addToCart từ CartContext
+const MenuItem = ({ item }: { item: Product }) => {
+  const { addToCart } = useCart();
+const handleAdd = () => {
+    // ✅ thêm vào giỏ hàng
+    addToCart({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image: item.image,
+      restaurantId: item.restaurantId,
+    });
+
+    // ✅ hiển thị toast thông báo
+    Toast.show({
+      type: "success",
+      text1: "Đã thêm vào giỏ hàng",
+      text2: `${item.name} đã được thêm thành công 👌`,
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
       position: "bottom",
     });
   };
@@ -282,12 +419,25 @@ const MenuItem = ({ item }: { item: Product }) => {
   );
 };
 
+<<<<<<< HEAD
 /* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   headerButtons: {
     position: "absolute",
     top: 16,
+=======
+
+
+
+const styles = StyleSheet.create({
+  container: { backgroundColor: "#f9fafb" },
+  headerImageWrapper: { height: 240, position: "relative" },
+  headerImage: { width: "100%", height: "100%" },
+  headerButtons: {
+    position: "absolute",
+    top: 20,
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
     left: 16,
     right: 16,
     flexDirection: "row",
@@ -314,7 +464,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 12,
   },
+<<<<<<< HEAD
   title: { fontSize: 22, fontWeight: "600" },
+=======
+  title: { fontSize: 22, fontWeight: "600", marginBottom: 4 },
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
   category: { color: "#666" },
   ratingBox: {
     flexDirection: "row",
@@ -324,6 +478,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
   },
+<<<<<<< HEAD
   rating: { marginLeft: 4 },
   meta: {
     flexDirection: "row",
@@ -346,6 +501,48 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+=======
+  rating: { marginLeft: 4, fontSize: 16 },
+  meta: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderColor: "#eee",
+    paddingBottom: 12,
+  },
+  metaItem: { flexDirection: "row", alignItems: "center" },
+  metaText: { marginLeft: 4, color: "#666", fontSize: 14 },
+  section: { backgroundColor: "#fff", padding: 16, marginTop: 8 },
+  sectionTitle: { fontSize: 18, fontWeight: "600", marginBottom: 12 },
+  // menuItem: { flexDirection: "row", marginBottom: 16 },
+  // menuImage: {
+  //   width: 96,
+  //   height: 96,
+  //   borderRadius: 12,
+  //   backgroundColor: "#eee",
+  // },
+  // menuContent: { flex: 1 },
+  // menuTitle: { fontSize: 16, fontWeight: "500", marginBottom: 4 },
+  // menuDesc: { fontSize: 13, color: "#666", marginBottom: 8 },
+  // menuBottom: {
+  //   flexDirection: "row",
+  //   justifyContent: "space-between",
+  //   alignItems: "center",
+  // },
+  // menuPrice: { color: "#f97316", fontWeight: "600" },
+  // addButton: {
+  //   backgroundColor: "#f97316",
+  //   paddingHorizontal: 12,
+  //   paddingVertical: 6,
+  //   borderRadius: 8,
+  // },
+  menuItem: { flexDirection: "row", marginBottom: 16 },
+  menuImage: { width: 96, height: 96, borderRadius: 12, backgroundColor: "#eee" },
+  menuContent: { flex: 1 },
+  menuTitle: { fontSize: 16, fontWeight: "500", marginBottom: 4 },
+  menuDesc: { fontSize: 13, color: "#666", marginBottom: 8 },
+  menuBottom: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
   menuPrice: { color: "#f97316", fontWeight: "600" },
   addButton: {
     backgroundColor: "#f97316",
@@ -353,5 +550,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
   },
+<<<<<<< HEAD
   addButtonText: { color: "#fff", fontSize: 13 },
 });
+=======
+  addButtonText: { color: "#fff", fontSize: 13, fontWeight: "500" },
+});
+>>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
