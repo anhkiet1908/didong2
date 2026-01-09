@@ -24,7 +24,7 @@ export default function ModalScreen() {
       {/* Chỉnh thanh status bar cho đẹp trên iOS */}
       <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
     </View>
-=======
+
 import { StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';

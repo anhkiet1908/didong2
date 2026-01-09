@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 <<<<<<< HEAD
   Alert,
-=======
+
 >>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
   View,
 } from "react-native";

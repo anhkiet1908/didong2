@@ -11,6 +11,7 @@ import {
   View
 } from "react-native";
 
+
 export default function VerifyOtp() {
   const { email, otp } = useLocalSearchParams();
   const [inputCode, setInputCode] = useState("");

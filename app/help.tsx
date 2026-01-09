@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
 import {
   StyleSheet,
   Text,
@@ -19,7 +18,7 @@ export default function HelpScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={[styles.container, { paddingTop: insets.top / 2 }]}>
-        <Text style={styles.header}>Trợ giúp & Hỗ trợ</Text>
+        <Text style={styles.header}>Trợ giúp Và Hỗ trợ</Text>
 
         <HelpItem
           icon="chatbubble-outline"

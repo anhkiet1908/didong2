@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
 import {
   FlatList,
   StyleSheet,
@@ -22,6 +21,12 @@ const addresses = [
   {
     id: "2",
     title: "Công ty",
+    detail: "456 Lê Văn B, Quận 1, TP.HCM",
+    default: false,
+  },
+  {
+    id: "3",
+    title: "Chung cư",
     detail: "456 Lê Văn B, Quận 1, TP.HCM",
     default: false,
   },

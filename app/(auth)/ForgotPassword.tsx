@@ -27,6 +27,7 @@ export default function ForgotPassword() {
       return;
     }
 
+    
     setLoading(true);
     const otpCode = generateOTP();
 

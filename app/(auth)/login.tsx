@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import {
 <<<<<<< HEAD
   Alert,
-=======
+
 >>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
   ScrollView,
   StyleSheet,
