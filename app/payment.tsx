@@ -1,14 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
 import {
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import {
-    SafeAreaView,
-    useSafeAreaInsets,
+  SafeAreaView,
+  useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
 export default function PaymentScreen() {
@@ -17,7 +16,7 @@ export default function PaymentScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
-        <Text style={styles.header}>Thanh toán</Text>
+        <Text style={styles.header}> Thanh toán </Text>
 
         <PaymentItem icon="cash-outline" title="Tiền mặt" active />
         <PaymentItem icon="wallet-outline" title="Ví MoMo" />

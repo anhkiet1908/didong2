@@ -1,5 +1,5 @@
 import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Image,
   ScrollView,
@@ -37,7 +37,7 @@ export default function CartScreen() {
         </View>
         <View style={styles.emptyWrapper}>
           <View style={styles.emptyIcon}>
-            <Text style={{ fontSize: 48 }}>🛒</Text>
+            <Text style={{ fontSize: 48 }}> 🛒 </Text>
           </View>
           <Text style={styles.emptyTitle}>Giỏ hàng của bạn đang trống</Text>
           <Text style={styles.emptyDesc}>

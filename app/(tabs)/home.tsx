@@ -1,24 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-<<<<<<< HEAD
 import React, { useEffect, useRef, useState } from "react";
 import {
   FlatList,
-=======
 import React, { useEffect, useState } from "react";
 import {
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
   Image,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-<<<<<<< HEAD
-  View
-=======
-  View,
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
+
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -31,7 +24,6 @@ const categories = [
   { id: 6, name: "Salad", emoji: "🥗" },
 ];
 
-<<<<<<< HEAD
 // Dữ liệu Banner
 const banners = [
   {
@@ -62,8 +54,6 @@ const CARD_WIDTH = 280;
 const SPACING = 12;
 const SNAP_INTERVAL = CARD_WIDTH + SPACING; // Khoảng cách mỗi lần lướt
 
-=======
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
 export default function Home() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -71,7 +61,6 @@ export default function Home() {
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-<<<<<<< HEAD
   // --- LOGIC AUTO SCROLL BANNER ---
   const [bannerIndex, setBannerIndex] = useState(0);
   const bannerRef = useRef<FlatList>(null);
@@ -101,8 +90,6 @@ export default function Home() {
   }, [bannerIndex]); // Chạy lại mỗi khi bannerIndex thay đổi
   // --------------------------------
 
-=======
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
@@ -110,15 +97,12 @@ export default function Home() {
           "https://firestore.googleapis.com/v1/projects/anhkiet-61730/databases/(default)/documents/restaurants?key=AIzaSyAn3CAbb21GsyLEAWalgRqb_ox_fwKu1E4"
         );
         const result = await response.json();
-<<<<<<< HEAD
 
         if (!result.documents) {
-=======
         console.log("✅ Firestore restaurants result:", result);
 
         if (!result.documents) {
           console.log("❌ Không có documents trong restaurants");
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
           setRestaurants([]);
           setLoading(false);
           return;

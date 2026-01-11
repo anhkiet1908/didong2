@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -18,7 +18,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
 // Key Gemini (Dùng để Chat)
 // ⚠️ Hãy thay bằng Key Gemini của bạn (Key lấy ở aistudio.google.com)
-const GEMINI_API_KEY = "AIzaSyAxlB39nHbj6eW0enaMXkHUN8qcOqme6wU"; 
+const GEMINI_API_KEY = "AIzaSyBvY5jLsNBHpNjWDAD3vYEaxaYikdcpn8Y"; 
 
 // Link API dữ liệu thật của bạn (Firestore)
 const FIRESTORE_URL = "https://firestore.googleapis.com/v1/projects/anhkiet-61730/databases/(default)/documents/restaurants?key=AIzaSyAn3CAbb21GsyLEAWalgRqb_ox_fwKu1E4";
