@@ -1,5 +1,4 @@
 import { Entypo, FontAwesome, Ionicons } from "@expo/vector-icons";
-import React from "react";
 import {
   Image,
   ScrollView,
@@ -227,6 +226,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 12,
   },
+  
   statusSub: { color: "#fff", fontSize: 12, marginTop: 4 },
   cardSection: { padding: 12, borderTopWidth: 1, borderColor: "#eee" },
   row: { flexDirection: "row", alignItems: "center" },
@@ -273,5 +273,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
   },
+
   reorderText: { color: "#f97316", fontSize: 13, fontWeight: "500" },
 });

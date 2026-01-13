@@ -1,19 +1,19 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   FlatList,
-import React, { useEffect, useState } from "react";
-import {
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
-
+  View
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const categories = [
   { id: 1, name: "All", emoji: "🍽️" },
@@ -24,7 +24,6 @@ const categories = [
   { id: 6, name: "Salad", emoji: "🥗" },
 ];
 
-// Dữ liệu Banner
 const banners = [
   {
     id: 1,
@@ -49,47 +48,39 @@ const banners = [
   },
 ];
 
-// Cấu hình kích thước banner để tính toán khoảng cách cuộn
 const CARD_WIDTH = 280;
 const SPACING = 12;
-const SNAP_INTERVAL = CARD_WIDTH + SPACING; // Khoảng cách mỗi lần lướt
+const SNAP_INTERVAL = CARD_WIDTH + SPACING;
 
 export default function Home() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [restaurants, setRestaurants] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // --- LOGIC AUTO SCROLL BANNER ---
+  // --- 🔥 STATE BỘ LỌC NÂNG CAO ---
+  const [filterVisible, setFilterVisible] = useState(false); // Ẩn/Hiện Modal
+  const [sortBy, setSortBy] = useState<"default" | "rating" | "time">("default"); // Sắp xếp
+  const [isFreeShip, setIsFreeShip] = useState(false); // Chỉ hiện FreeShip
+
+  // --- LOGIC BANNER ---
   const [bannerIndex, setBannerIndex] = useState(0);
   const bannerRef = useRef<FlatList>(null);
 
   useEffect(() => {
-    // Tạo bộ đếm thời gian
     const intervalId = setInterval(() => {
       let nextIndex = bannerIndex + 1;
-      
-      // Nếu hết danh sách thì quay về đầu (0)
-      if (nextIndex >= banners.length) {
-        nextIndex = 0;
-      }
-
+      if (nextIndex >= banners.length) nextIndex = 0;
       setBannerIndex(nextIndex);
-
-      // Ra lệnh cho FlatList cuộn đến vị trí tiếp theo
-      bannerRef.current?.scrollToIndex({
-        index: nextIndex,
-        animated: true,
-      });
-
-    }, 5000); // 5000ms = 5 giây
-
-    // Dọn dẹp bộ nhớ khi thoát màn hình
+      bannerRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+    }, 5000);
     return () => clearInterval(intervalId);
-  }, [bannerIndex]); // Chạy lại mỗi khi bannerIndex thay đổi
-  // --------------------------------
+  }, [bannerIndex]);
 
+  // --- FETCH DATA ---
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
@@ -99,10 +90,6 @@ export default function Home() {
         const result = await response.json();
 
         if (!result.documents) {
-        console.log("✅ Firestore restaurants result:", result);
-
-        if (!result.documents) {
-          console.log("❌ Không có documents trong restaurants");
           setRestaurants([]);
           setLoading(false);
           return;
@@ -116,8 +103,8 @@ export default function Home() {
             category: fields.category?.stringValue || "",
             image: fields.image?.stringValue || "",
             rating: parseFloat(fields.rating?.doubleValue || fields.rating?.integerValue || "0"),
-            deliveryTime: fields.deliveryTime?.stringValue || "",
-            deliveryFee: fields.deliveryFee?.stringValue || "",
+            deliveryTime: fields.deliveryTime?.stringValue || "30 min",
+            deliveryFee: fields.deliveryFee?.stringValue || "$0.00",
             distance: fields.distance?.stringValue || "",
             featured: fields.featured?.booleanValue || false,
           };
@@ -125,44 +112,65 @@ export default function Home() {
 
         setRestaurants(data);
       } catch (error) {
-        console.log("❌ Lỗi fetch restaurants:", error);
-        setRestaurants([]);
+        console.log("❌ Lỗi fetch:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchRestaurants();
   }, []);
 
-  const filteredRestaurants = restaurants.filter((restaurant) => {
-    const matchesCategory =
-      selectedCategory === "All" || restaurant.category === selectedCategory;
-    const matchesSearch =
-      restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      restaurant.category.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  // --- 🔥 LOGIC LỌC & SẮP XẾP (ĐÃ SỬA) ---
+  const getFilteredRestaurants = () => {
+    let result = restaurants;
 
-  const featuredRestaurants = filteredRestaurants.filter((r) => r.featured);
+    // 1. LỌC THEO TỪ KHÓA TÌM KIẾM (SEARCH) - Phần bị thiếu
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(r => r.name.toLowerCase().includes(query));
+    }
+
+    // 2. LỌC THEO DANH MỤC (CATEGORY) - Phần bị thiếu
+    if (selectedCategory !== "All") {
+      result = result.filter(r => r.category === selectedCategory);
+    }
+
+    // 3. LỌC FREESHIP
+    if (isFreeShip) {
+      result = result.filter(r => 
+        r.deliveryFee.toLowerCase().includes("free") || 
+        r.deliveryFee.includes("0.00")
+      );
+    }
+
+    // 4. SẮP XẾP (SORT)
+    if (sortBy === "rating") {
+        // Vừa lọc điểm cao, vừa sắp xếp
+        result = result.filter(r => r.rating >= 4.8); // Chỉ lấy quán > 4 sao
+        result = [...result].sort((a, b) => b.rating - a.rating);
+    } 
+    else if (sortBy === "time") {
+        // Sắp xếp thời gian giao hàng tăng dần
+        result = [...result].sort((a, b) => parseInt(a.deliveryTime) - parseInt(b.deliveryTime));
+    }
+
+    return result;
+  };
+
+  const filteredData = getFilteredRestaurants();
+  const featuredRestaurants = filteredData.filter((r) => r.featured);
 
   const handleRestaurantClick = (id: string) => {
     router.push(`/restaurant-detail/${id}`);
   };
 
-<<<<<<< HEAD
-  // Component render từng Banner
   const renderBanner = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={[styles.bannerCard, { backgroundColor: item.color }]}
-    >
+    <TouchableOpacity style={[styles.bannerCard, { backgroundColor: item.color }]}>
       <View style={styles.bannerContent}>
         <Text style={styles.bannerTitle}>{item.title}</Text>
         <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
         <View style={styles.bannerButton}>
-          <Text style={{ fontSize: 10, fontWeight: "bold", color: item.color }}>
-            Dùng ngay
-          </Text>
+          <Text style={{ fontSize: 10, fontWeight: "bold", color: item.color }}>Dùng ngay</Text>
         </View>
       </View>
       <Image source={{ uri: item.image }} style={styles.bannerImage} />
@@ -170,279 +178,226 @@ export default function Home() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f9f9f9" }}>
-      <ScrollView style={{ flex: 1, backgroundColor: "#f9f9f9" }} nestedScrollEnabled={true}>
-        
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerRow}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons name="location" size={20} color="orange" />
-              <View style={{ marginLeft: 8 }}>
-                <Text style={{ fontSize: 12, color: "gray" }}>Giao hàng đến</Text>
-                <Text style={{ fontSize: 14, fontWeight: '600' }}>123 Đường Tăng Nhơn Phú, TP.HCM</Text>
-              </View>
-            </View>
-            <TouchableOpacity style={styles.flashButton}>
-              <Ionicons name="notifications-outline" size={20} color="orange" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.searchWrapper}>
-            <Ionicons
-              name="search"
-              size={20}
-              color="gray"
-              style={{ position: "absolute", left: 12, top: 12 }}
-            />
-            <TextInput
-              placeholder="Tìm món ăn, nhà hàng..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              style={styles.searchInput}
-            />
-          </View>
-        </View>
-
-        {/* 🔥 AUTO-SCROLL BANNER SECTION */}
-        <View style={{ paddingTop: 16 }}>
-          <Text style={[styles.sectionTitle, { paddingLeft: 16 }]}>Ưu đãi hôm nay 🔥</Text>
+    <View style={{ flex: 1, backgroundColor: "#f9f9f9" }}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView style={{ flex: 1 }} nestedScrollEnabled={true} showsVerticalScrollIndicator={false}>
           
-          <FlatList
-            ref={bannerRef}
-            data={banners}
-            renderItem={renderBanner}
-            keyExtractor={(item) => item.id.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingLeft: 16, paddingRight: 4, marginTop: 10 }}
-            // Các thuộc tính giúp cuộn mượt mà
-            snapToInterval={SNAP_INTERVAL} // Dừng đúng vị trí thẻ
-            decelerationRate="fast"
-            // Hàm này giúp FlatList tính toán vị trí chính xác để không bị lỗi khi scroll tự động
-            getItemLayout={(data, index) => (
-              { length: SNAP_INTERVAL, offset: SNAP_INTERVAL * index, index }
-            )}
-            // Cập nhật lại index nếu người dùng tự tay lướt
-            onMomentumScrollEnd={(event) => {
-              const index = Math.round(
-                event.nativeEvent.contentOffset.x / SNAP_INTERVAL
-              );
-              setBannerIndex(index);
-            }}
-          />
-        </View>
-
-        {/* Categories */}
-        <View style={{ marginTop: 16 }}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categories}>
-            {categories.map((category) => (
-                <TouchableOpacity
-                key={category.id}
-                onPress={() => setSelectedCategory(category.name)}
-                style={[
-                    styles.categoryButton,
-                    selectedCategory === category.name && styles.categorySelected,
-                ]}
-                >
-                <Text style={{ fontSize: 22 }}>{category.emoji}</Text>
-                <Text
-                    style={{
-                    fontSize: 12,
-                    marginTop: 4,
-                    fontWeight: "500",
-                    color: selectedCategory === category.name ? "white" : "black",
-                    }}
-                >
-                    {category.name}
-                </Text>
-                </TouchableOpacity>
-            ))}
-            </ScrollView>
-        </View>
-
-        {/* Loading */}
-        {loading && (
-          <View style={{ padding: 16 }}>
-            <Text style={{ textAlign: "center", color: "gray" }}>Đang tải dữ liệu...</Text>
-          </View>
-        )}
-
-        {/* Featured Section */}
-        {!loading && featuredRestaurants.length > 0 && selectedCategory === "All" && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Nhà hàng nổi bật ⭐</Text>
-              <TouchableOpacity>
-                <Text style={{ color: "orange", fontSize: 12 }}>Xem tất cả</Text>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.headerRow}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons name="location" size={20} color="orange" />
+                <View style={{ marginLeft: 8 }}>
+                  <Text style={{ fontSize: 12, color: "gray" }}>Giao hàng đến</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '600' }}>123 Đường Tăng Nhơn Phú</Text>
+                </View>
+              </View>
+              <TouchableOpacity 
+                style={styles.flashButton}
+                onPress={() => router.push("/notification")} 
+              >
+                <Ionicons name="notifications-outline" size={20} color="orange" />
               </TouchableOpacity>
             </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {featuredRestaurants.map((restaurant) => (
-                <TouchableOpacity
-                  key={restaurant.id}
-                  onPress={() => handleRestaurantClick(restaurant.id)}
-                  style={styles.featuredCard}
-                >
-                  <Image source={{ uri: restaurant.image }} style={styles.featuredImage} />
-                  <View style={styles.ratingBadge}>
-                    <Ionicons name="star" size={12} color="gold" />
-                    <Text style={{ fontSize: 10, fontWeight: "bold", marginLeft: 2 }}>{restaurant.rating}</Text>
-                  </View>
-                  <View style={{ padding: 10 }}>
-                    <Text style={{ fontWeight: "bold", fontSize: 14 }} numberOfLines={1}>{restaurant.name}</Text>
-                    <Text style={{ fontSize: 12, color: "gray", marginTop: 2 }}>{restaurant.category}</Text>
-                    <View style={styles.infoRow}>
-                      <View style={{ flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name="time-outline" size={12} color="gray" />
-                        <Text style={{ fontSize: 11, marginLeft: 2, color: "gray" }}>{restaurant.deliveryTime}</Text>
-                      </View>
-                      <Text style={{ fontSize: 11, color: "orange", fontWeight: "600" }}>{restaurant.deliveryFee}</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
 
-        {/* All Restaurants */}
-        {!loading && (
-          <View style={[styles.section, { paddingBottom: 40 }]}>
-            <Text style={styles.sectionTitle}>Gợi ý quanh bạn</Text>
-            {filteredRestaurants.map((restaurant) => (
-              <TouchableOpacity
-                key={restaurant.id}
-                onPress={() => handleRestaurantClick(restaurant.id)}
-                style={styles.restaurantCard}
-              >
-                <Image source={{ uri: restaurant.image }} style={styles.restaurantImage} />
-                <View style={{ flex: 1, padding: 10, justifyContent: "space-between" }}>
-                  <View>
-                    <View style={styles.restaurantHeader}>
-                      <Text style={{ fontWeight: "bold", fontSize: 15, flex: 1 }} numberOfLines={1}>{restaurant.name}</Text>
-                      <View style={styles.ratingSmall}>
-                        <Ionicons name="star" size={10} color="orange" />
-                        <Text style={{ fontSize: 10, marginLeft: 2, fontWeight: "bold" }}>{restaurant.rating}</Text>
-                      </View>
-                    </View>
-                    <Text style={{ fontSize: 12, color: "gray", marginTop: 2 }}>{restaurant.category} • {restaurant.distance}</Text>
-                  </View>
-                  
-                  <View style={styles.infoRow}>
-                    <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f5f5f5", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                      <Ionicons name="time-outline" size={12} color="#555" />
-                      <Text style={{ fontSize: 11, marginLeft: 4, color: "#555" }}>{restaurant.deliveryTime}</Text>
-                    </View>
-                    <Text style={{ fontSize: 12, color: "orange", fontWeight: "bold" }}>{restaurant.deliveryFee}</Text>
-=======
-  return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#f9f9f9" }}>
-    
-    <ScrollView style={{ flex: 1, backgroundColor: "#f9f9f9" }}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Ionicons name="location" size={20} color="orange" />
-            <View style={{ marginLeft: 8 }}>
-              <Text style={{ fontSize: 12, color: "gray" }}>Giao hàng đến</Text>
-              <Text style={{ fontSize: 14 }}>123 Đường Tăng Nhơn Phú, Căn hộ 4B</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                {/* Search Bar */}
+                <View style={styles.searchWrapper}>
+                    <Ionicons name="search" size={20} color="gray" style={{ position: "absolute", left: 12 }} />
+                    <TextInput
+                        placeholder="Tìm món ngon..."
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        style={styles.searchInput}
+                    />
+                </View>
+
+                {/* 🔥 NÚT LỌC (FILTER BUTTON) */}
+                <TouchableOpacity style={styles.filterBtn} onPress={() => setFilterVisible(true)}>
+                    <Ionicons name="options-outline" size={22} color="white" />
+                </TouchableOpacity>
             </View>
           </View>
-          <TouchableOpacity style={styles.flashButton}>
-            <Ionicons name="flash" size={20} color="orange" />
-          </TouchableOpacity>
-        </View>
 
-        <View style={styles.searchWrapper}>
-          <Ionicons
-            name="search"
-            size={20}
-            color="gray"
-            style={{ position: "absolute", left: 12, top: 12 }}
-          />
-          <TextInput
-            placeholder="Search restaurants or dishes..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={styles.searchInput}
-          />
-        </View>
-      </View>
-
-      {/* Categories */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categories}>
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category.id}
-            onPress={() => setSelectedCategory(category.name)}
-            style={[
-              styles.categoryButton,
-              selectedCategory === category.name && styles.categorySelected,
-            ]}
-          >
-            <Text style={{ fontSize: 20 }}>{category.emoji}</Text>
-            <Text
-              style={{
-                fontSize: 12,
-                color: selectedCategory === category.name ? "white" : "black",
+          {/* BANNER */}
+          <View style={{ paddingTop: 16 }}>
+            <Text style={[styles.sectionTitle, { paddingLeft: 16 }]}>Ưu đãi hôm nay 🔥</Text>
+            <FlatList
+              ref={bannerRef}
+              data={banners}
+              renderItem={renderBanner}
+              keyExtractor={(item) => item.id.toString()}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingLeft: 16, paddingRight: 4, marginTop: 10 }}
+              snapToInterval={SNAP_INTERVAL}
+              decelerationRate="fast"
+              getItemLayout={(data, index) => ({ length: SNAP_INTERVAL, offset: SNAP_INTERVAL * index, index })}
+              onMomentumScrollEnd={(event) => {
+                const index = Math.round(event.nativeEvent.contentOffset.x / SNAP_INTERVAL);
+                setBannerIndex(index);
               }}
-            >
-              {category.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Loading */}
-      {loading && (
-        <View style={{ padding: 16 }}>
-          <Text style={{ textAlign: "center", color: "gray" }}>Đang tải dữ liệu...</Text>
-        </View>
-      )}
-
-      {/* Featured Section */}
-      {!loading && featuredRestaurants.length > 0 && selectedCategory === "All" && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Nhà hàng nổi bật</Text>
-            <TouchableOpacity>
-              <Text style={{ color: "orange" }}>Xem tất cả</Text>
-            </TouchableOpacity>
+            />
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {featuredRestaurants.map((restaurant) => (
-              <TouchableOpacity
-                key={restaurant.id}
-                onPress={() => handleRestaurantClick(restaurant.id)}
-                style={styles.featuredCard}
-              >
-                <Image source={{ uri: restaurant.image }} style={styles.featuredImage} />
-                <View style={styles.ratingBadge}>
-                  <Ionicons name="star" size={14} color="gold" />
-                  <Text style={{ fontSize: 12 }}>{restaurant.rating}</Text>
-                </View>
-                <View style={{ padding: 8 }}>
-                  <Text style={{ fontWeight: "600" }}>{restaurant.name}</Text>
-                  <Text style={{ fontSize: 12, color: "gray" }}>{restaurant.category}</Text>
-                  <View style={styles.infoRow}>
-                    <View style={{ flexDirection: "row", alignItems: "center" }}>
-                      <Ionicons name="time" size={14} color="gray" />
-                      <Text style={{ fontSize: 12, marginLeft: 4 }}>{restaurant.deliveryTime}</Text>
-                    </View>
-                    <Text style={{ fontSize: 12 }}>{restaurant.deliveryFee} vận chuyển</Text>
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
+
+          {/* Categories */}
+          <View style={{ marginTop: 16 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categories}>
+              {categories.map((category) => (
+                  <TouchableOpacity
+                  key={category.id}
+                  onPress={() => setSelectedCategory(category.name)}
+                  style={[styles.categoryButton, selectedCategory === category.name && styles.categorySelected]}
+                  >
+                  <Text style={{ fontSize: 22 }}>{category.emoji}</Text>
+                  <Text style={{ fontSize: 12, marginTop: 4, fontWeight: "500", color: selectedCategory === category.name ? "white" : "black" }}>
+                      {category.name}
+                  </Text>
+                  </TouchableOpacity>
+              ))}
+              </ScrollView>
+          </View>
+
+          {/* Loading */}
+          {loading && (
+            <View style={{ padding: 16 }}>
+              <Text style={{ textAlign: "center", color: "gray" }}>Đang tải dữ liệu...</Text>
+            </View>
+          )}
+
+          {/* Kết quả lọc */}
+          {!loading && (
+            <View style={[styles.section, { paddingBottom: 80 }]}>
+              
+              {/* Tiêu đề thay đổi theo ngữ cảnh */}
+              <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>
+                      {searchQuery ? "Kết quả tìm kiếm" : "Gợi ý quanh bạn"}
+                  </Text>
+                  {/* Hiển thị badge nếu đang lọc */}
+                  {(sortBy !== 'default' || isFreeShip) && (
+                      <View style={styles.activeFilterBadge}>
+                          <Text style={{fontSize: 10, color: 'orange', fontWeight: 'bold'}}>Đang lọc</Text>
+                      </View>
+                  )}
+              </View>
+
+              {filteredData.length === 0 ? (
+                  <View style={{alignItems: 'center', marginTop: 20}}>
+                      <Ionicons name="search-outline" size={40} color="#ccc" />
+                      <Text style={{color: '#999', marginTop: 10}}>Không tìm thấy quán nào phù hợp</Text>
                   </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-<<<<<<< HEAD
-          </View>
-        )}
+              ) : (
+                  filteredData.map((restaurant) => (
+                    <TouchableOpacity
+                        key={restaurant.id}
+                        onPress={() => handleRestaurantClick(restaurant.id)}
+                        style={styles.restaurantCard}
+                    >
+                        <Image source={{ uri: restaurant.image }} style={styles.restaurantImage} />
+                        <View style={{ flex: 1, padding: 10, justifyContent: "space-between" }}>
+                        <View>
+                            <View style={styles.restaurantHeader}>
+                            <Text style={{ fontWeight: "bold", fontSize: 15, flex: 1 }} numberOfLines={1}>{restaurant.name}</Text>
+                            <View style={styles.ratingSmall}>
+                                <Ionicons name="star" size={10} color="orange" />
+                                <Text style={{ fontSize: 10, marginLeft: 2, fontWeight: "bold" }}>{restaurant.rating}</Text>
+                            </View>
+                            </View>
+                            <Text style={{ fontSize: 12, color: "gray", marginTop: 2 }}>{restaurant.category} • {restaurant.distance}</Text>
+                        </View>
+                        
+                        <View style={styles.infoRow}>
+                            <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f5f5f5", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                            <Ionicons name="time-outline" size={12} color="#555" />
+                            <Text style={{ fontSize: 11, marginLeft: 4, color: "#555" }}>{restaurant.deliveryTime}</Text>
+                            </View>
+                            <Text style={{ fontSize: 12, color: "orange", fontWeight: "bold" }}>{restaurant.deliveryFee}</Text>
+                        </View>
+                        </View>
+                    </TouchableOpacity>
+                  ))
+              )}
+            </View>
+          )}
 
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+
+      {/* 🔥 NÚT CHATBOT FAB */}
+      <TouchableOpacity
+        activeOpacity={0.8}
+        style={[styles.chatButton, { bottom: insets.bottom + 90 }]}
+        onPress={() => router.push("/chat-ai")} 
+      >
+        <MaterialCommunityIcons name="robot-happy-outline" size={32} color="white" />
+        <View style={styles.chatBadge} />
+      </TouchableOpacity>
+
+      {/* 🔥🔥🔥 MODAL BỘ LỌC (ADVANCED FILTER) 🔥🔥🔥 */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={filterVisible}
+        onRequestClose={() => setFilterVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>Bộ lọc & Sắp xếp</Text>
+                    <TouchableOpacity onPress={() => setFilterVisible(false)}>
+                        <Ionicons name="close" size={24} color="#333" />
+                    </TouchableOpacity>
+                </View>
+
+                {/* Sắp xếp */}
+                <Text style={styles.filterLabel}>Sắp xếp theo</Text>
+                <View style={styles.sortOptions}>
+                    <TouchableOpacity 
+                        style={[styles.sortBtn, sortBy === 'default' && styles.sortBtnActive]} 
+                        onPress={() => setSortBy('default')}
+                    >
+                        <Text style={[styles.sortText, sortBy === 'default' && styles.sortTextActive]}>Mặc định</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                        style={[styles.sortBtn, sortBy === 'rating' && styles.sortBtnActive]} 
+                        onPress={() => setSortBy('rating')}
+                    >
+                        <Text style={[styles.sortText, sortBy === 'rating' && styles.sortTextActive]}>Đánh giá cao ⭐</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                        style={[styles.sortBtn, sortBy === 'time' && styles.sortBtnActive]} 
+                        onPress={() => setSortBy('time')}
+                    >
+                        <Text style={[styles.sortText, sortBy === 'time' && styles.sortTextActive]}>Giao nhanh ⚡</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Tùy chọn khác */}
+                <View style={styles.switchRow}>
+                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                        <MaterialCommunityIcons name="truck-delivery-outline" size={22} color="#4DB6AC" />
+                        <Text style={styles.switchLabel}>Chỉ hiện FreeShip</Text>
+                    </View>
+                    <Switch 
+                        value={isFreeShip} 
+                        onValueChange={setIsFreeShip} 
+                        trackColor={{ false: "#eee", true: "#FF8A65" }}
+                        thumbColor={isFreeShip ? "#FF6B00" : "#f4f3f4"}
+                    />
+                </View>
+
+                {/* Nút Áp dụng */}
+                <TouchableOpacity style={styles.applyBtn} onPress={() => setFilterVisible(false)}>
+                    <Text style={styles.applyBtnText}>Áp dụng ({filteredData.length} kết quả)</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+      </Modal>
+
+    </View>
   );
 }
 
@@ -456,308 +411,75 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 3,
-=======
-          </ScrollView>
-        </View>
-      )}
-
-      {/* All Restaurants */}
-      {!loading && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Tất cả các nhà hàng</Text>
-          {filteredRestaurants.map((restaurant) => (
-            <TouchableOpacity
-              key={restaurant.id}
-              onPress={() => handleRestaurantClick(restaurant.id)}
-              style={styles.restaurantCard}
-            >
-              <Image source={{ uri: restaurant.image }} style={styles.restaurantImage} />
-              <View style={{ flex: 1, padding: 8 }}>
-                <View style={styles.restaurantHeader}>
-                  <View>
-                    <Text style={{ fontWeight: "600" }}>{restaurant.name}</Text>
-                    <Text style={{ fontSize: 12, color: "gray" }}>{restaurant.category}</Text>
-                  </View>
-                  <View style={styles.ratingSmall}>
-                    <Ionicons name="star" size={12} color="orange" />
-                    <Text style={{ fontSize: 12 }}>{restaurant.rating}</Text>
-                  </View>
-                </View>
-                <View style={styles.infoRow}>
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Ionicons name="time" size={14} color="gray" />
-                    <Text style={{ fontSize: 12, marginLeft: 4 }}>{restaurant.deliveryTime}</Text>
-                  </View>
-                  <Text style={{ fontSize: 12 }}> {restaurant.deliveryFee}</Text>
-                  <Text style={{ fontSize: 12 }}> {restaurant.distance}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-    </ScrollView>
-        </SafeAreaView>
-    
-  );
-}
-
-
-const styles = StyleSheet.create({
-  header: {
-    backgroundColor: "white",
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
   },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-<<<<<<< HEAD
-    marginBottom: 16,
-=======
-    marginBottom: 12,
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
-  },
-  flashButton: {
-    backgroundColor: "#fff3e0",
-    padding: 8,
-<<<<<<< HEAD
-    borderRadius: 50,
-  },
+  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+  flashButton: { backgroundColor: "#fff3e0", padding: 8, borderRadius: 50 },
+  
+  // 🔥 Search & Filter Button
   searchWrapper: {
+    flex: 1,
     backgroundColor: "#f5f5f5",
     borderRadius: 12,
-    paddingLeft: 40,
-    paddingRight: 12,
     height: 45,
     justifyContent: "center",
+    marginRight: 10, // Cách nút lọc ra
   },
-  searchInput: {
-    height: "100%",
-    fontSize: 14,
+  searchInput: { height: "100%", fontSize: 14, paddingLeft: 40, paddingRight: 12 },
+  filterBtn: {
+      width: 45, height: 45,
+      backgroundColor: "#FF6B00",
+      borderRadius: 12,
+      justifyContent: 'center', alignItems: 'center',
+      shadowColor: "#FF6B00", shadowOpacity: 0.3, shadowRadius: 5, elevation: 5
   },
-  // 🔥 Style cho Banner (Không thay đổi)
-  bannerCard: {
-    width: CARD_WIDTH, // Sử dụng biến hằng số
-    height: 140,
-    borderRadius: 16,
-    marginRight: SPACING, // Sử dụng biến hằng số
-    flexDirection: "row",
-    alignItems: "center",
-    overflow: "hidden",
-    paddingLeft: 16,
-  },
-  bannerContent: {
-    flex: 1,
-    zIndex: 1,
-  },
-  bannerTitle: {
-    color: "white",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  bannerSubtitle: {
-    color: "rgba(255,255,255,0.9)",
-    fontSize: 12,
-    marginBottom: 12,
-  },
-  bannerButton: {
-    backgroundColor: "white",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    alignSelf: "flex-start",
-  },
-  bannerImage: {
-    width: 120,
-    height: 140,
-    resizeMode: "cover",
-    marginLeft: -20,
-    opacity: 0.9,
-  },
-  categories: {
-    paddingLeft: 16,
-=======
-    borderRadius: 20,
-  },
-  searchWrapper: {
-    marginTop: 8,
-    backgroundColor: "#f3f3f3",
-    borderRadius: 12,
-    paddingLeft: 40,
-    paddingRight: 12,
-  },
-  searchInput: {
-    height: 40,
-    fontSize: 14,
-  },
-  categories: {
-    backgroundColor: "white",
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
-  },
-  categoryButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-<<<<<<< HEAD
-    width: 70, 
-    height: 80,
-    borderRadius: 16,
-    backgroundColor: "white",
-    borderWidth: 1,
-    borderColor: "#f0f0f0",
-  },
-  categorySelected: {
-    backgroundColor: "orange",
-    borderColor: "orange",
-  },
-  section: {
-    padding: 16,
-    paddingBottom: 0,
-=======
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: "#f3f3f3",
-  },
-  categorySelected: {
-    backgroundColor: "orange",
-  },
-  section: {
-    padding: 16,
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-<<<<<<< HEAD
-    fontWeight: "700",
-    color: "#333",
-  },
-  featuredCard: {
-    width: 200,
-=======
-    fontWeight: "600",
-  },
-  featuredCard: {
-    width: 220,
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
-    backgroundColor: "white",
-    borderRadius: 16,
-    marginRight: 12,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-<<<<<<< HEAD
-    shadowRadius: 5,
-    elevation: 2,
-    marginBottom: 5, 
-  },
-  featuredImage: {
-    width: "100%",
-    height: 110,
-  },
-  ratingBadge: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-=======
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  featuredImage: {
-    width: "100%",
-    height: 120,
-  },
-  ratingBadge: {
-    position: "absolute",
-    top: 8,
-    right: 8,
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "white",
-    paddingHorizontal: 6,
-<<<<<<< HEAD
-    paddingVertical: 4,
-    borderRadius: 8,
-=======
-    paddingVertical: 2,
-    borderRadius: 12,
-    elevation: 2,
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
-  },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-<<<<<<< HEAD
-    alignItems: "center",
-=======
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
-    marginTop: 6,
-  },
-  restaurantCard: {
-    flexDirection: "row",
-    backgroundColor: "white",
-    borderRadius: 16,
-<<<<<<< HEAD
-    marginBottom: 16,
-    overflow: "hidden",
-    elevation: 1,
-    borderWidth: 1,
-    borderColor: "#f0f0f0",
-  },
-  restaurantImage: {
-    width: 100,
-    height: 110,
-=======
-    marginBottom: 12,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  restaurantImage: {
-    width: 100,
-    height: 100,
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
-  },
-  restaurantHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-<<<<<<< HEAD
-    alignItems: "flex-start",
-=======
-    marginBottom: 6,
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
-  },
-  ratingSmall: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff3e0",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-<<<<<<< HEAD
-    borderRadius: 6,
-  },
-});
-=======
-    borderRadius: 8,
-  },
-});
 
-   
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
+  // Banner
+  bannerCard: { width: CARD_WIDTH, height: 140, borderRadius: 16, marginRight: SPACING, flexDirection: "row", alignItems: "center", overflow: "hidden", paddingLeft: 16 },
+  bannerContent: { flex: 1, zIndex: 1 },
+  bannerTitle: { color: "white", fontSize: 20, fontWeight: "bold" },
+  bannerSubtitle: { color: "rgba(255,255,255,0.9)", fontSize: 12, marginBottom: 12 },
+  bannerButton: { backgroundColor: "white", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, alignSelf: "flex-start" },
+  bannerImage: { width: 120, height: 140, resizeMode: "cover", marginLeft: -20, opacity: 0.9 },
+  
+  // Categories
+  categories: { paddingLeft: 16 },
+  categoryButton: { alignItems: "center", justifyContent: "center", marginRight: 12, width: 70, height: 80, borderRadius: 16, backgroundColor: "white", borderWidth: 1, borderColor: "#f0f0f0" },
+  categorySelected: { backgroundColor: "orange", borderColor: "orange" },
+  
+  // Content
+  section: { padding: 16, paddingBottom: 0 },
+  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  sectionTitle: { fontSize: 18, fontWeight: "700", color: "#333" },
+  activeFilterBadge: { backgroundColor: '#FFF3E0', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
+
+  // Restaurant Card
+  featuredCard: { width: 200, backgroundColor: "white", borderRadius: 16, marginRight: 12, overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 5, elevation: 2, marginBottom: 5 },
+  featuredImage: { width: "100%", height: 110 },
+  ratingBadge: { position: "absolute", top: 10, left: 10, flexDirection: "row", alignItems: "center", backgroundColor: "white", paddingHorizontal: 6, paddingVertical: 4, borderRadius: 8 },
+  
+  restaurantCard: { flexDirection: "row", backgroundColor: "white", borderRadius: 16, marginBottom: 16, overflow: "hidden", elevation: 1, borderWidth: 1, borderColor: "#f0f0f0" },
+  restaurantImage: { width: 100, height: 110 },
+  restaurantHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  ratingSmall: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff3e0", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  infoRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 6 },
+
+  // Chat Button
+  chatButton: { position: "absolute", right: 20, width: 60, height: 60, borderRadius: 30, backgroundColor: "#FF6B00", justifyContent: "center", alignItems: "center", shadowColor: "#FF6B00", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 5, elevation: 10, zIndex: 999 },
+  chatBadge: { position: "absolute", top: 14, right: 14, width: 10, height: 10, borderRadius: 5, backgroundColor: "#4ade80", borderWidth: 2, borderColor: "#FF6B00" },
+
+  // 🔥 MODAL STYLES
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: 'white', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 40 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#333' },
+  filterLabel: { fontSize: 16, fontWeight: '600', color: '#666', marginBottom: 10 },
+  sortOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
+  sortBtn: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: '#eee', backgroundColor: '#f9f9f9' },
+  sortBtnActive: { backgroundColor: '#FFF3E0', borderColor: '#FF6B00' },
+  sortText: { color: '#666', fontWeight: '500' },
+  sortTextActive: { color: '#FF6B00', fontWeight: 'bold' },
+  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 15, borderTopWidth: 1, borderTopColor: '#f0f0f0', borderBottomWidth: 1, borderBottomColor: '#f0f0f0', marginBottom: 20 },
+  switchLabel: { fontSize: 16, marginLeft: 10, fontWeight: '500', color: '#333' },
+  applyBtn: { backgroundColor: '#FF6B00', borderRadius: 16, paddingVertical: 15, alignItems: 'center' },
+  applyBtnText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+});

@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -16,12 +17,11 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
 /* ================= 1. CẤU HÌNH API ================= */
 
-// Key Gemini (Dùng để Chat)
-// ⚠️ Hãy thay bằng Key Gemini của bạn (Key lấy ở aistudio.google.com)
-const GEMINI_API_KEY = "AIzaSyBvY5jLsNBHpNjWDAD3vYEaxaYikdcpn8Y"; 
+const GEMINI_API_KEY = "AIzaSyD7KRDdMC9TmB-5wypYjQDU1XHmOK3GL9Y"; 
 
-// Link API dữ liệu thật của bạn (Firestore)
-const FIRESTORE_URL = "https://firestore.googleapis.com/v1/projects/anhkiet-61730/databases/(default)/documents/restaurants?key=AIzaSyAn3CAbb21GsyLEAWalgRqb_ox_fwKu1E4";
+// 🔥 URL CỦA 2 BẢNG DỮ LIỆU
+const URL_RESTAURANTS = "https://firestore.googleapis.com/v1/projects/anhkiet-61730/databases/(default)/documents/restaurants?key=AIzaSyAn3CAbb21GsyLEAWalgRqb_ox_fwKu1E4";
+const URL_PRODUCTS = "https://firestore.googleapis.com/v1/projects/anhkiet-61730/databases/(default)/documents/product?key=AIzaSyAn3CAbb21GsyLEAWalgRqb_ox_fwKu1E4";
 
 interface IMessage { id: string; text: string; sender: 'user' | 'bot'; }
 
@@ -33,101 +33,112 @@ export default function ChatAIScreen() {
   const [input, setInput] = useState<string>("");
   const [typing, setTyping] = useState<boolean>(false);
   
-  // State lưu trữ dữ liệu thật lấy từ API về
-  const [restaurantContext, setRestaurantContext] = useState<string>("Đang tải dữ liệu quán...");
-  const [activeModel, setActiveModel] = useState<string | null>(null);
-
-  /* ================= 2. HÀM XỬ LÝ DỮ LIỆU FIRESTORE ================= */
-  // Firestore trả về dạng { fields: { name: { stringValue: "..." } } } rất rối
-  // Hàm này giúp chuyển nó thành văn bản dễ đọc cho AI hiểu.
-  const parseFirestoreData = (data: any) => {
+  const [dataContext, setDataContext] = useState<string>("Đang tải dữ liệu...");
+const [activeModel, setActiveModel] = useState<string>("gemini-1.5-flash");
+  /* ================= 2. HÀM XỬ LÝ DỮ LIỆU THÔNG MINH ================= */
+  const buildAIContext = (restaurants: any, products: any) => {
     try {
-      if (!data.documents) return "Không có dữ liệu quán ăn.";
+      let text = "DỮ LIỆU HỆ THỐNG:\n";
 
-      let contextString = "Dưới đây là thông tin thực tế của các quán ăn từ hệ thống:\n";
+      // 1. Xử lý danh sách Nhà hàng
+      if (restaurants.documents) {
+        text += "--- DANH SÁCH NHÀ HÀNG ---\n";
+        restaurants.documents.forEach((doc: any) => {
+          const f = doc.fields;
+          const id = doc.name.split("/").pop(); 
+          const name = f.name?.stringValue || "Chưa có tên";
+          const addr = f.address?.stringValue || "TP.HCM"; 
+          text += `🆔 ID Quán: ${id}\n🏠 Tên: ${name}\n📍 Đ/c: ${addr}\n\n`;
+        });
+      }
 
-      data.documents.forEach((doc: any, index: number) => {
-        const fields = doc.fields;
-        // Tùy vào cấu trúc database của bạn mà sửa phần này nhé
-        // Ví dụ này giả định DB có các trường: name, address, menu, description
-        const name = fields.name?.stringValue || "Quán chưa đặt tên";
-        const address = fields.address?.stringValue || "Chưa cập nhật địa chỉ";
-        const desc = fields.description?.stringValue || "";
-        
-        // Nếu menu là một chuỗi mô tả
-        const menu = fields.menu?.stringValue || fields.menu?.arrayValue?.values?.map((v:any) => v.stringValue).join(", ") || "Đang cập nhật";
+      // 2. Xử lý danh sách Món ăn
+      if (products.documents) {
+        text += "--- DANH SÁCH MÓN ĂN ---\n";
+        products.documents.forEach((doc: any) => {
+          const f = doc.fields;
+          const name = f.name?.stringValue || "Món lạ";
+          const price = f.price?.doubleValue || f.price?.integerValue || "0";
+          const desc = f.description?.stringValue || "Ngon tuyệt";
+          const restId = f.restaurantId?.stringValue || ""; 
+          
+          text += `🍔 Món: ${name} - Giá: $${price}\n📝 Mô tả: ${desc}\n🔗 Thuộc ID Quán: ${restId}\n\n`;
+        });
+      }
 
-        contextString += `\n${index + 1}. Tên quán: ${name}\n   - Địa chỉ: ${address}\n   - Menu/Món ăn: ${menu}\n   - Mô tả: ${desc}\n`;
-      });
-
-      return contextString;
+      return text;
     } catch (error) {
-      console.error("Lỗi parse Firestore:", error);
-      return "Lỗi khi đọc dữ liệu quán.";
+      return "Lỗi dữ liệu.";
     }
   };
 
-  /* ================= 3. LOAD DỮ LIỆU & MODEL ================= */
+  /* ================= 3. LOAD DỮ LIỆU & LỊCH SỬ CHAT ================= */
   useEffect(() => {
     const initSystem = async () => {
-      // BƯỚC A: Tìm Model Gemini tốt nhất (Auto-discovery)
+      // A. Tìm model Gemini
       try {
         const modelRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
         const modelData = await modelRes.json();
         if (modelData.models) {
-          const chosen = modelData.models.find((m: any) => m.name.includes("flash"))?.name 
-                      || modelData.models.find((m: any) => m.name.includes("pro"))?.name
-                      || modelData.models[0]?.name;
-          setActiveModel(chosen);
+            const chosen = modelData.models.find((m: any) => m.name.includes("flash"))?.name || "gemini-1.5-flash";
+            setActiveModel(chosen);
         }
-      } catch (e) { console.error("Lỗi tìm model:", e); }
+      } catch (e) {}
 
-      // BƯỚC B: Lấy dữ liệu thật từ Firestore
+      // B. Load Lịch sử Chat cũ từ máy (🔥 QUAN TRỌNG)
       try {
-        console.log("⏳ Đang lấy dữ liệu từ Firestore...");
-        const firestoreRes = await fetch(FIRESTORE_URL);
-        const firestoreData = await firestoreRes.json();
-        
-        // Chuyển JSON loằng ngoằng thành văn bản
-        const cleanData = parseFirestoreData(firestoreData);
-        console.log("✅ Dữ liệu đã lấy:", cleanData);
-        
-        setRestaurantContext(cleanData); // Lưu vào bộ nhớ để AI dùng sau này
+        const storedHistory = await AsyncStorage.getItem("chat_history");
+        if (storedHistory) {
+            setMessages(JSON.parse(storedHistory));
+        } else {
+            setMessages([{ id: "1", sender: "bot", text: "🤖 Chào bạn! Bạn muốn tìm món gì? (Ví dụ: Pizza, Burger...)" }]);
+        }
+      } catch (e) {}
+
+      // C. Lấy dữ liệu API
+      try {
+        const [resRest, resProd] = await Promise.all([
+            fetch(URL_RESTAURANTS).then(r => r.json()),
+            fetch(URL_PRODUCTS).then(r => r.json())
+        ]);
+        const fullContext = buildAIContext(resRest, resProd);
+        setDataContext(fullContext);
       } catch (e) {
-        console.error("Lỗi lấy Firestore:", e);
-        setRestaurantContext("Hiện không kết nối được với dữ liệu quán ăn.");
+        setDataContext("Lỗi kết nối database.");
       }
     };
 
     initSystem();
-    
-    // Load lịch sử chat
-    AsyncStorage.getItem("chat_history").then(stored => {
-      if (stored) setMessages(JSON.parse(stored));
-      else setMessages([{ id: "1", sender: "bot", text: "👋 Xin chào! Mình có thể giúp gì về thông tin các quán ăn ạ?" }]);
-    });
   }, []);
 
-  /* ================= 4. GỌI API GEMINI (KÈM DỮ LIỆU THẬT) ================= */
+  // 🔥 TỰ ĐỘNG LƯU TIN NHẮN KHI CÓ THAY ĐỔI
+  useEffect(() => {
+      if (messages.length > 0) {
+          AsyncStorage.setItem("chat_history", JSON.stringify(messages));
+      }
+  }, [messages]);
+
+  /* ================= 4. GỌI API GEMINI ================= */
   const callGeminiAPI = async (userMessage: string): Promise<string> => {
-    if (!activeModel) return "⚠️ Đang kết nối AI...";
+    if (!activeModel) return "⚠️ Đang khởi động não bộ AI...";
 
     const modelName = activeModel.startsWith("models/") ? activeModel : `models/${activeModel}`;
     const url = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
 
-    // 🔥 KỸ THUẬT PROMPT: Nhồi dữ liệu thật vào ngữ cảnh
     const FINAL_PROMPT = `
-    Bạn là trợ lý ảo hỗ trợ tìm kiếm quán ăn.
+    Bạn là AI tư vấn ẩm thực FoodApp.
     
-    HÃY TRẢ LỜI DỰA TRÊN DỮ LIỆU THỰC TẾ SAU ĐÂY (Không được bịa đặt):
-    -------------------
-    ${restaurantContext}
-    -------------------
+    DỮ LIỆU THỰC TẾ:
+    =========================================
+    ${dataContext}
+    =========================================
 
-    Yêu cầu:
-    - Trả lời ngắn gọn, thân thiện, dùng emoji 🍔.
-    - Nếu khách hỏi món không có trong danh sách trên, hãy bảo là quán chưa có.
-    
+    Quy tắc:
+    1. Tìm món trong "DANH SÁCH MÓN ĂN".
+    2. Xem "Thuộc ID Quán" để tìm tên/địa chỉ trong "DANH SÁCH NHÀ HÀNG".
+    3. Trả lời: "Món [Tên] giá [Giá] tại quán [Tên Quán] ([Địa chỉ])".
+    4. Dùng emoji.
+
     Khách hỏi: ${userMessage}
     `;
 
@@ -135,51 +146,69 @@ export default function ChatAIScreen() {
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: FINAL_PROMPT }] }]
-        }),
+        body: JSON.stringify({ contents: [{ parts: [{ text: FINAL_PROMPT }] }] }),
       });
 
       const data = await response.json();
-      
-      if (data.error) return `⚠️ Lỗi AI: ${data.error.message}`;
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || "Xin lỗi, tôi không hiểu.";
-
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || "AI đang suy nghĩ...";
     } catch (error) {
-      return "⚠️ Lỗi kết nối mạng.";
+      return "⚠️ Lỗi mạng rồi.";
     }
   };
 
   /* ================= 5. GỬI TIN NHẮN ================= */
-  const sendMessage = async (text?: string) => {
-    const content = text ?? input;
-    if (!content.trim()) return;
-
-    setMessages(prev => [...prev, { id: Date.now().toString(), sender: "user", text: content }]);
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+    const msgText = input;
+    
+    // 1. Hiện tin nhắn user ngay lập tức
+    const newMsgUser: IMessage = { id: Date.now().toString(), sender: "user", text: msgText };
+    setMessages(prev => [...prev, newMsgUser]);
     setInput("");
     setTyping(true);
 
-    const reply = await callGeminiAPI(content);
+    // 2. Gọi AI
+    const reply = await callGeminiAPI(msgText);
 
-    setMessages(prev => [...prev, { id: (Date.now()+1).toString(), sender: "bot", text: reply }]);
+    // 3. Hiện tin nhắn bot
+    const newMsgBot: IMessage = { id: (Date.now()+1).toString(), sender: "bot", text: reply };
+    setMessages(prev => [...prev, newMsgBot]);
     setTyping(false);
   };
 
-  /* ================= UI RENDER ================= */
+  // Hàm xóa lịch sử chat
+  const clearHistory = async () => {
+      Alert.alert("Xóa lịch sử", "Bạn có chắc muốn xóa hết tin nhắn không?", [
+          { text: "Hủy", style: "cancel" },
+          { 
+              text: "Xóa", 
+              style: "destructive", 
+              onPress: async () => {
+                  setMessages([{ id: Date.now().toString(), sender: "bot", text: "Đã xóa lịch sử. Chúng ta bắt đầu lại nhé! 🤖" }]);
+                  await AsyncStorage.removeItem("chat_history");
+              }
+          }
+      ]);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={insets.top + 10}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <View style={styles.container}>
           
           <View style={styles.header}>
             <View>
-              <Text style={styles.title}>FoodApp AI 🤖</Text>
-              {/* Hiển thị trạng thái dữ liệu */}
-              <Text style={{fontSize: 10, color: restaurantContext.includes("Đang tải") ? 'orange' : 'green'}}>
-                 {restaurantContext.includes("Đang tải") ? "⏳ Đang tải menu..." : "AI 2.0"}
+              <Text style={styles.title}>Trợ lý Ẩm Thực 👩‍🍳</Text>
+              <Text style={{fontSize: 10, color: 'green'}}>
+                 {dataContext.length > 50 ? "✅ Đã kết nối dữ liệu" : "⏳ Đang tải..."}
               </Text>
             </View>
-            {typing && <ActivityIndicator size="small" color="#f97316" />}
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                {typing && <ActivityIndicator size="small" color="#f97316" style={{marginRight: 10}} />}
+                <TouchableOpacity onPress={clearHistory}>
+                    <Ionicons name="trash-outline" size={22} color="red" />
+                </TouchableOpacity>
+            </View>
           </View>
 
           <FlatList
@@ -191,12 +220,20 @@ export default function ChatAIScreen() {
                 <Text style={[styles.text, item.sender === "user" ? styles.userText : styles.botText]}>{item.text}</Text>
               </View>
             )}
-            contentContainerStyle={{ padding: 10 }}
+            contentContainerStyle={{ padding: 10, paddingBottom: 20 }}
+            onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+            onLayout={() => listRef.current?.scrollToEnd({ animated: true })}
           />
 
           <View style={styles.inputBar}>
-            <TextInput value={input} onChangeText={setInput} style={styles.input} placeholder="Tìm quán, món ăn..." />
-            <TouchableOpacity onPress={() => sendMessage()} style={styles.sendBtn}>
+            <TextInput 
+                value={input} 
+                onChangeText={setInput} 
+                style={styles.input} 
+                placeholder="Hỏi AI: Pizza giá bao nhiêu?..." 
+                onSubmitEditing={sendMessage}
+            />
+            <TouchableOpacity onPress={sendMessage} style={styles.sendBtn}>
               <Ionicons name="send" size={20} color="#fff" />
             </TouchableOpacity>
           </View>
@@ -206,19 +243,18 @@ export default function ChatAIScreen() {
   );
 }
 
-/* ================= STYLES ================= */
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#fff" },
   container: { flex: 1 },
-  header: { padding: 15, borderBottomWidth: 1, borderColor: "#eee", flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 18, fontWeight: "bold" },
+  header: { padding: 15, borderBottomWidth: 1, borderColor: "#eee", flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff' },
+  title: { fontSize: 18, fontWeight: "bold", color: '#333' },
   bubble: { maxWidth: "80%", padding: 12, borderRadius: 18, marginVertical: 5 },
-  userBubble: { alignSelf: "flex-end", backgroundColor: "#f97316" },
-  botBubble: { alignSelf: "flex-start", backgroundColor: "#f1f5f9" },
-  text: { fontSize: 15 },
+  userBubble: { alignSelf: "flex-end", backgroundColor: "#FF6B00", borderBottomRightRadius: 4 },
+  botBubble: { alignSelf: "flex-start", backgroundColor: "#F3F4F6", borderBottomLeftRadius: 4 },
+  text: { fontSize: 15, lineHeight: 22 },
   userText: { color: "#fff" },
-  botText: { color: "#000" },
-  inputBar: { flexDirection: "row", padding: 10, borderTopWidth: 1, borderColor: "#eee" },
-  input: { flex: 1, backgroundColor: "#f8f9fa", borderRadius: 25, paddingHorizontal: 15, height: 45, borderWidth: 1, borderColor: "#ddd" },
-  sendBtn: { width: 45, height: 45, backgroundColor: "#f97316", borderRadius: 25, marginLeft: 10, justifyContent: "center", alignItems: "center" }
+  botText: { color: "#333" },
+  inputBar: { flexDirection: "row", padding: 10, borderTopWidth: 1, borderColor: "#eee", backgroundColor: '#fff' },
+  input: { flex: 1, backgroundColor: "#F9FAFB", borderRadius: 25, paddingHorizontal: 20, height: 50, borderWidth: 1, borderColor: "#E5E7EB", fontSize: 16 },
+  sendBtn: { width: 50, height: 50, backgroundColor: "#FF6B00", borderRadius: 25, marginLeft: 10, justifyContent: "center", alignItems: "center", elevation: 2 }
 });
