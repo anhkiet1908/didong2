@@ -59,7 +59,7 @@ export default function Orders({ onOrderClick }: OrdersProps) {
       <View style={styles.container}>
         {/* Header tránh notch */}
         <View style={[styles.header, { paddingTop: insets.top }]}>
-          <Text style={styles.headerTitle}>Đơn hàng</Text>
+          <Text style={styles.headerTitle}>Đơn Hàng</Text>
         </View>
 
         <ScrollView

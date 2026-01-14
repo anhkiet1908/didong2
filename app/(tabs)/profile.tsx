@@ -1,281 +1,444 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuth } from "../../components/ui/AuthContext"; // ✅ lấy user từ context
+import { useAuth } from "../../components/ui/AuthContext";
 
 export default function Profile() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { user, logout } = useAuth();
+  const { user, logout, login } = useAuth();
+  
+  // API Key Firebase của bạn
+  const API_KEY = "AIzaSyAn3CAbb21GsyLEAWalgRqb_ox_fwKu1E4"; 
 
+  // --- STATE QUẢN LÝ ---
+  const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // State thông tin update
+  const [newName, setNewName] = useState("");
+  
+  // State mật khẩu
+  const [oldPassword, setOldPassword] = useState(""); 
+  const [newPassword, setNewNamePassword] = useState(""); 
+  
+  // State ẩn/hiện mật khẩu
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  
+  // State Logic xác thực
+  const [isVerified, setIsVerified] = useState(false); // Đã check pass cũ đúng chưa?
+  const [verifying, setVerifying] = useState(false);   // Đang check pass cũ?
+
+  // --- HÀM 1: ĐĂNG XUẤT ---
   const handleLogout = () => {
-    logout();
+    Alert.alert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất?", [
+      { text: "Hủy", style: "cancel" },
+      { 
+        text: "Đăng xuất", 
+        style: "destructive", 
+        onPress: () => {
+          logout();
+          router.replace("/(auth)/login");
+        } 
+      }
+    ]);
+  };
 
-export default function Profile() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets(); // lấy khoảng trống notch
+  // --- HÀM 2: MỞ MODAL & RESET STATE ---
+  const openEditModal = () => {
+      setNewName(user?.name || "");
+      setNewNamePassword(""); 
+      setOldPassword("");
+      setIsVerified(false); // Reset trạng thái xác thực
+      setShowOldPassword(false);
+      setShowNewPassword(false);
+      setModalVisible(true);
+  };
 
-  const handleLogout = () => {
-    router.replace("/(auth)/login");
+  // --- HÀM 3: XÁC THỰC MẬT KHẨU CŨ ---
+  const handleVerifyOldPassword = async () => {
+    if (!oldPassword) {
+        Alert.alert("Lỗi", "Vui lòng nhập mật khẩu hiện tại.");
+        return;
+    }
+
+    setVerifying(true);
+    try {
+        const response = await fetch(
+            `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: user?.email,
+                    password: oldPassword,
+                    returnSecureToken: true
+                }),
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.error) {
+            Alert.alert("Sai mật khẩu", "Mật khẩu hiện tại không đúng.");
+            setIsVerified(false);
+        } else {
+            setIsVerified(true);
+            // Alert.alert("Thành công", "Mật khẩu chính xác. Bạn có thể nhập mật khẩu mới.");
+        }
+    } catch (error) {
+        Alert.alert("Lỗi", "Lỗi kết nối mạng, vui lòng thử lại.");
+    } finally {
+        setVerifying(false);
+    }
+  };
+
+  // --- HÀM 4: CẬP NHẬT PROFILE LÊN SERVER ---
+  const handleUpdateProfile = async () => {
+    // 1. Validate Tên
+    if (!newName.trim()) {
+      Alert.alert("Lỗi", "Tên hiển thị không được để trống");
+      return;
+    }
+
+    // 2. Validate Logic Mật khẩu
+    // Nếu có nhập mật khẩu mới thì BẮT BUỘC phải đã Verify mật khẩu cũ
+    if (newPassword.length > 0) {
+        if (!isVerified) {
+             Alert.alert("Lỗi", "Vui lòng xác nhận mật khẩu cũ trước khi đổi.");
+             return;
+        }
+        if (newPassword.length < 6) {
+            Alert.alert("Lỗi", "Mật khẩu mới phải có ít nhất 6 ký tự");
+            return;
+        }
+    }
+
+    setLoading(true);
+    try {
+      const payload: any = {
+        idToken: user?.token, 
+        displayName: newName,
+        returnSecureToken: true,
+      };
+
+      // Chỉ gửi password mới khi đã verify OK
+      if (newPassword.length > 0 && isVerified) {
+        payload.password = newPassword;
+      }
+
+      const response = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const result = await response.json();
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+
+      // Cập nhật Context
+      if (user) {
+        const updatedUser = {
+            ...user,
+            name: result.displayName, 
+            token: result.idToken, 
+        };
+        login(updatedUser); 
+      }
+
+      Alert.alert("Thành công", "Cập nhật hồ sơ thành công!");
+      setModalVisible(false);
+
+    } catch (error: any) {
+      console.log("Update Error:", error);
+      Alert.alert("Lỗi", "Không thể cập nhật. Vui lòng thử lại sau.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
         style={styles.container}
-        contentContainerStyle={{ paddingBottom: 40 }}
-        contentInsetAdjustmentBehavior="never"
+        contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top }]}>
-          <Text style={styles.headerTitle}>Hồ Sơ</Text>
-          <Text style={styles.headerTitle}>Hồ Sơ</Text>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Hồ Sơ Của Bạn</Text>
         </View>
 
-        {/* User Info */}
-        <View style={styles.userInfo}>
+        {/* User Info Card */}
+        <View style={styles.userInfoCard}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
-              {user?.name?.substring(0, 2).toUpperCase() || "??"}
+              {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
             </Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.userName}>{user?.name || "Chưa có tên"}</Text>
-            <Text style={styles.userEmail}>{user?.email || "Chưa có email"}</Text>
-            <Text style={styles.avatarText}>JD</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.userName}>John Doe</Text>
-            <Text style={styles.userEmail}>john.doe@email.com</Text>
-            <TouchableOpacity>
-              <Text style={styles.editProfile}>Chỉnh sửa hồ sơ</Text>
+            <Text style={styles.userName}>{user?.name || "Người dùng"}</Text>
+            <Text style={styles.userEmail}>{user?.email || "Chưa đăng nhập"}</Text>
+            
+            <TouchableOpacity style={styles.editBtn} onPress={openEditModal}>
+              <Text style={styles.editBtnText}>Chỉnh sửa thông tin</Text>
+              <Ionicons name="create-outline" size={16} color="#FF6B00" />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Stats */}
-        <View style={styles.stats}>
+        {/* Stats Row */}
+        <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>24</Text>
             <Text style={styles.statLabel}>Đơn hàng</Text>
           </View>
-          <View style={[styles.statItem, styles.statBorder]}>
+          <View style={styles.verticalLine} />
+          <View style={styles.statItem}>
             <Text style={styles.statValue}>8</Text>
             <Text style={styles.statLabel}>Yêu thích</Text>
           </View>
+          <View style={styles.verticalLine} />
           <View style={styles.statItem}>
             <Text style={styles.statValue}>$420</Text>
-            <Text style={styles.statLabel}>Đã chi</Text>
-            <Text style={styles.statLabel}>Đã chi</Text>
+            <Text style={styles.statLabel}>Chi tiêu</Text>
           </View>
         </View>
 
-        {/* Menu Items */}
-        <View style={styles.menu}>
-        <MenuItem
-  icon="location-outline"
-  label="Địa chỉ"
-  description="Quản lý địa chỉ giao hàng của bạn"
-  onPress={() => router.push("/address")}
-/>
+        {/* Menu Section */}
+        <View style={styles.menuContainer}>
+          <Text style={styles.sectionTitle}>Tài khoản</Text>
+          <MenuItem icon="location-outline" label="Địa chỉ giao hàng" onPress={() => router.push("/address")} />
+          <MenuItem icon="card-outline" label="Phương thức thanh toán" onPress={() => router.push("/payment")} />
+          <MenuItem icon="heart-outline" label="Nhà hàng yêu thích" onPress={() => router.push("/favorite")} />
 
-<MenuItem
-  icon="card-outline"
-  label="Phương thức thanh toán"
-  description="Thêm hoặc chỉnh sửa phương thức thanh toán"
-  onPress={() => router.push("/payment")}
-/>
-
-<MenuItem
-  icon="heart-outline"
-  label="Yêu thích"
-  description="Những nhà hàng yêu thích của bạn"
-  onPress={() => router.push("/favorite")}
-/>
-
-<MenuItem
-  icon="notifications-outline"
-  label="Thông báo"
-  description="Quản lý cài đặt thông báo"
-  onPress={() => router.push("/notification")}
-/>
-
-<MenuItem
-  icon="help-circle-outline"
-  label="Trợ giúp & Hỗ trợ"
-  description="Nhận trợ giúp về đơn hàng của bạn"
-  onPress={() => router.push("/help")}
-/>
-
-<MenuItem
-  icon="settings-outline"
-  label="Cài đặt"
-  description="Tùy chọn và cài đặt ứng dụng"
-  onPress={() => router.push("/setting")}
-/>
-
-=======
-          <MenuItem
-            icon="location-outline"
-            label="Địa chỉ"
-            description="Quản lý địa chỉ giao hàng của bạn"
-          />
-          <MenuItem
-            icon="card-outline"
-            label="Phương thức thanh toán"
-            description="Thêm hoặc chỉnh sửa phương thức thanh toán"
-          />
-          <MenuItem
-            icon="heart-outline"
-            label="Yêu thích"
-            description="Những nhà hàng yêu thích của bạn"
-          />
-          <MenuItem
-            icon="notifications-outline"
-            label="Thông báo"
-            description="Quản lý cài đặt thông báo"
-          />
-          <MenuItem
-            icon="help-circle-outline"
-            label="Trợ giúp & Hỗ trợ"
-            description="Nhận trợ giúp về đơn hàng của bạn"
-          />
-          <MenuItem
-            icon="settings-outline"
-            label="Cài đặt"
-            description="Tùy chọn và cài đặt ứng dụng"
-          />
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
+          <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Cài đặt & Hỗ trợ</Text>
+          <MenuItem icon="notifications-outline" label="Thông báo" onPress={() => router.push("/notification")} />
+          <MenuItem icon="help-circle-outline" label="Trợ giúp & Hỗ trợ" onPress={() => router.push("/help")} />
+          <MenuItem icon="settings-outline" label="Cài đặt chung" onPress={() => router.push("/setting")} />
         </View>
 
         {/* Logout Button */}
-        <View style={styles.logout}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color="red" />
-            <Text style={styles.logoutText}>Đăng xuất</Text>
-            <Text style={styles.logoutText}>Đăng xuất</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
+          <Text style={styles.logoutText}>Đăng xuất</Text>
+        </TouchableOpacity>
 
-        {/* Version */}
-        <Text style={styles.version}>Version 1.0.0</Text>
+        <Text style={styles.version}>Phiên bản 1.0.0</Text>
       </ScrollView>
+
+      {/* --- MODAL CHỈNH SỬA --- */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <KeyboardAvoidingView 
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+        >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Cập nhật hồ sơ</Text>
+                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                <Ionicons name="close" size={24} color="#333" />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Ô nhập Tên */}
+                        <View style={{marginBottom: 16}}>
+                            <Text style={styles.inputLabel}>Tên hiển thị</Text>
+                            <TextInput 
+                                style={styles.input}
+                                value={newName}
+                                onChangeText={setNewName}
+                                placeholder="Nhập tên mới..."
+                            />
+                        </View>
+                        
+                        {/* KẺ NGANG PHÂN CÁCH */}
+                        <View style={{height: 1, backgroundColor: '#EEE', marginVertical: 10}} />
+                        <Text style={{fontSize: 14, fontWeight: 'bold', color: '#FF6B00', marginBottom: 10}}>
+                            Đổi mật khẩu (Tùy chọn)
+                        </Text>
+
+                         {/* BƯỚC 1: NHẬP MẬT KHẨU CŨ & VERIFY */}
+                         <View style={{marginBottom: 16}}>
+                            <Text style={styles.inputLabel}>
+                                1. Mật khẩu hiện tại <Text style={{color:'red'}}>*</Text>
+                                {isVerified && <Text style={{color: 'green', fontWeight: 'bold'}}> (Đã xác thực)</Text>}
+                            </Text>
+                            
+                            <View style={[styles.passwordContainer, isVerified && {borderColor: '#4CAF50', backgroundColor: '#F1F8E9'}]}>
+                                <TextInput 
+                                    style={styles.passwordInput}
+                                    value={oldPassword}
+                                    onChangeText={(text) => {
+                                        setOldPassword(text);
+                                        setIsVerified(false); // Nếu sửa pass cũ thì reset verify
+                                    }}
+                                    placeholder="Nhập mật khẩu đang dùng..."
+                                    secureTextEntry={!showOldPassword}
+                                />
+                                <TouchableOpacity onPress={() => setShowOldPassword(!showOldPassword)} style={styles.eyeIcon}>
+                                    <Ionicons name={showOldPassword ? "eye-off-outline" : "eye-outline"} size={20} color="gray" />
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Nút Verify: Chỉ hiện khi chưa xác thực và đã nhập chữ */}
+                            {!isVerified && oldPassword.length > 0 && (
+                                <TouchableOpacity 
+                                    style={styles.verifyBtn} 
+                                    onPress={handleVerifyOldPassword}
+                                    disabled={verifying}
+                                >
+                                    {verifying ? (
+                                        <ActivityIndicator size="small" color="#FFF"/>
+                                    ) : (
+                                        <Text style={styles.verifyBtnText}>Xác thực mật khẩu</Text>
+                                    )}
+                                </TouchableOpacity>
+                            )}
+                        </View>
+
+                        {/* BƯỚC 2: NHẬP MẬT KHẨU MỚI (CHỈ MỞ KHI ĐÃ VERIFY) */}
+                        <View style={{marginBottom: 16, opacity: isVerified ? 1 : 0.5}}>
+                            <Text style={styles.inputLabel}>
+                                2. Mật khẩu mới {isVerified ? "" : "(Bị khóa - Cần xác thực ở trên)"}
+                            </Text>
+                            <View style={[styles.passwordContainer, !isVerified && {backgroundColor: '#EEE'}]}>
+                                <TextInput 
+                                    style={styles.passwordInput}
+                                    value={newPassword}
+                                    onChangeText={setNewNamePassword}
+                                    placeholder={isVerified ? "Nhập mật khẩu mới (min 6 ký tự)" : "Hãy xác thực mật khẩu cũ trước"}
+                                    secureTextEntry={!showNewPassword}
+                                    editable={isVerified} // 🔥 KHÓA Ô NÀY NẾU CHƯA VERIFY
+                                />
+                                <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)} style={styles.eyeIcon}>
+                                    <Ionicons name={showNewPassword ? "eye-off-outline" : "eye-outline"} size={20} color="gray" />
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Email Read-only */}
+                        <View style={{marginBottom: 20}}>
+                            <Text style={styles.inputLabel}>Email (Không thể sửa)</Text>
+                            <TextInput 
+                                style={[styles.input, {backgroundColor: '#f0f0f0', color: '#888'}]}
+                                value={user?.email}
+                                editable={false}
+                            />
+                        </View>
+
+                        {/* NÚT LƯU */}
+                        <TouchableOpacity 
+                            style={styles.saveBtn} 
+                            onPress={handleUpdateProfile}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <ActivityIndicator color="#fff" />
+                            ) : (
+                                <Text style={styles.saveBtnText}>Lưu thay đổi</Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
 
-function MenuItem({
-  icon,
-  label,
-  description,
-  onPress,
-}: {
-  icon: any;
-  label: string;
-  description: string;
-<<<<<<< HEAD
-  onPress: () => void;
-}) {
+// Component Menu Item
+function MenuItem({ icon, label, onPress }: { icon: any; label: string; onPress: () => void }) {
   return (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-=======
-}) {
-  return (
-    <TouchableOpacity style={styles.menuItem}>
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
-      <View style={styles.menuIcon}>
-        <Ionicons name={icon} size={22} color="orange" />
+      <View style={styles.iconContainer}>
+        <Ionicons name={icon} size={20} color="#555" />
       </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.menuLabel}>{label}</Text>
-        <Text style={styles.menuDescription}>{description}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color="gray" />
+      <Text style={styles.menuLabel}>{label}</Text>
+      <Ionicons name="chevron-forward" size={18} color="#CCC" />
     </TouchableOpacity>
   );
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 97b1ddbf8f813b632991c0a96bf4260d9170c09e
+// Styles
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#f9fafb" },
-  container: { flex: 1, backgroundColor: "#f9f9f9" },
-  header: {
-    backgroundColor: "white",
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderColor: "#eee",
-  },
-  headerTitle: { fontSize: 18, fontWeight: "600" },
-  userInfo: {
-    flexDirection: "row",
-    backgroundColor: "white",
-    padding: 16,
-    alignItems: "center",
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "orange",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  avatarText: { color: "white", fontSize: 20, fontWeight: "700" },
-  userName: { fontSize: 18, fontWeight: "600" },
-  userEmail: { color: "gray", marginBottom: 4 },
-  editProfile: { color: "orange", fontSize: 14 },
-  stats: { flexDirection: "row", backgroundColor: "white", marginTop: 8 },
-  statItem: { flex: 1, alignItems: "center", padding: 16 },
-  statBorder: { borderLeftWidth: 1, borderRightWidth: 1, borderColor: "#eee" },
-  statValue: { fontSize: 20, color: "orange", fontWeight: "600" },
-  statLabel: { color: "gray", fontSize: 12 },
-  menu: { padding: 16 },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "white",
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  menuIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: "#fff3e0",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  menuLabel: { fontSize: 16, fontWeight: "500" },
-  menuDescription: { fontSize: 12, color: "gray" },
-  logout: { padding: 16 },
-  logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "white",
-    padding: 12,
-    borderRadius: 12,
-    justifyContent: "center",
-  },
-  logoutText: { color: "red", marginLeft: 8, fontSize: 16 },
-  version: {
-    textAlign: "center",
-    color: "gray",
-    fontSize: 12,
-    marginBottom: 16,
-  },
+  safeArea: { flex: 1, backgroundColor: "#F5F5F8" },
+  container: { flex: 1 },
+  header: { paddingHorizontal: 20, paddingVertical: 16, backgroundColor: "#fff", borderBottomWidth: 1, borderBottomColor: "#F0F0F0" },
+  headerTitle: { fontSize: 24, fontWeight: "bold", color: "#333" },
+
+  userInfoCard: { flexDirection: "row", backgroundColor: "#fff", margin: 16, padding: 16, borderRadius: 16, alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
+  avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#FF6B00", justifyContent: "center", alignItems: "center", marginRight: 16 },
+  avatarText: { color: "#fff", fontSize: 22, fontWeight: "bold" },
+  userName: { fontSize: 18, fontWeight: "bold", color: "#333" },
+  userEmail: { color: "#888", fontSize: 13, marginTop: 2 },
+  editBtn: { flexDirection: 'row', alignItems: 'center', marginTop: 6, backgroundColor: '#FFF0E0', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, alignSelf: 'flex-start' },
+  editBtnText: { color: "#FF6B00", fontSize: 12, fontWeight: "600", marginRight: 4 },
+
+  statsContainer: { flexDirection: "row", backgroundColor: "#fff", marginHorizontal: 16, borderRadius: 16, paddingVertical: 16, justifyContent: "space-around", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
+  statItem: { alignItems: "center", flex: 1 },
+  statValue: { fontSize: 18, fontWeight: "bold", color: "#FF6B00" },
+  statLabel: { fontSize: 12, color: "#888", marginTop: 4 },
+  verticalLine: { width: 1, height: 30, backgroundColor: "#EEE" },
+
+  menuContainer: { paddingHorizontal: 16, marginTop: 24 },
+  sectionTitle: { fontSize: 16, fontWeight: "bold", color: "#333", marginBottom: 12, marginLeft: 4 },
+  menuItem: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: "#F5F5F5" },
+  iconContainer: { width: 36, height: 36, borderRadius: 10, backgroundColor: "#F5F5F8", justifyContent: 'center', alignItems: 'center', marginRight: 14 },
+  menuLabel: { flex: 1, fontSize: 15, fontWeight: "500", color: "#333" },
+
+  logoutButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: "#FFE5E5", marginHorizontal: 16, marginTop: 30, paddingVertical: 14, borderRadius: 12 },
+  logoutText: { color: "#FF3B30", fontWeight: "bold", fontSize: 16, marginLeft: 8 },
+  version: { textAlign: "center", color: "#AAA", fontSize: 12, marginTop: 20, marginBottom: 20 },
+
+  // MODAL CSS
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
+  modalContent: { backgroundColor: 'white', borderRadius: 20, padding: 20, elevation: 5 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#333' },
+  inputLabel: { fontSize: 14, fontWeight: '600', color: '#666', marginBottom: 8 },
+  input: { backgroundColor: '#F5F5F8', borderRadius: 12, padding: 14, fontSize: 16, borderWidth: 1, borderColor: '#eee', color: '#333' },
+  
+  // Password Input CSS
+  passwordContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F8', borderRadius: 12, borderWidth: 1, borderColor: '#eee' },
+  passwordInput: { flex: 1, padding: 14, fontSize: 16, color: '#333' },
+  eyeIcon: { padding: 14 },
+
+  saveBtn: { backgroundColor: '#FF6B00', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 10, shadowColor: "#FF6B00", shadowOpacity: 0.3, shadowOffset: {width: 0, height: 4}, elevation: 5 },
+  saveBtnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+
+  // Nút xác thực mật khẩu cũ
+  verifyBtn: { alignSelf: 'flex-end', backgroundColor: '#333', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8, marginTop: 8 },
+  verifyBtnText: { color: '#FFF', fontSize: 12, fontWeight: 'bold' }
 });

@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Dimensions,
   StyleSheet,
@@ -56,7 +56,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         {/* Skip Button */}
         <View style={[styles.skipWrapper, { paddingTop: insets.top }]}>
           <TouchableOpacity onPress={handleSkip}>
-            <Text style={styles.skipText}>Skip</Text>
+            <Text style={styles.skipText}>Bỏ qua</Text>
           </TouchableOpacity>
         </View>
 
@@ -91,7 +91,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         <View style={[styles.nextWrapper, { paddingBottom: insets.bottom + 16 }]}>
           <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
             <Text style={styles.nextText}>
-              {currentSlide < slides.length - 1 ? "Next" : "Get Started"}
+              {currentSlide < slides.length - 1 ? "Kế tiếp" : "Bắt đầu"}
             </Text>
             <Ionicons name="chevron-forward" size={20} color="white" />
           </TouchableOpacity>
