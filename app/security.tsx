@@ -21,7 +21,6 @@ export default function SecurityScreen() {
         <Text style={styles.sectionTitle}>Đăng nhập</Text>
         <View style={styles.card}>
             
-            {/* Sinh trắc học */}
             <View style={styles.item}>
                 <View style={styles.textWrapper}>
                     <Text style={styles.itemText}>Face ID / Vân tay</Text>
@@ -37,7 +36,6 @@ export default function SecurityScreen() {
             </View>
             <View style={styles.separator} />
 
-            {/* Đổi mật khẩu */}
             <TouchableOpacity style={styles.item} onPress={() => router.push("/(auth)/ForgotPassword")}>
                  <Text style={styles.itemText}>Đổi mật khẩu</Text>
                  <Ionicons name="chevron-forward" size={20} color="#ccc" />
@@ -46,7 +44,6 @@ export default function SecurityScreen() {
 
         <Text style={styles.sectionTitle}>Nâng cao</Text>
         <View style={styles.card}>
-            {/* Xác thực 2 bước */}
             <View style={styles.item}>
                 <View style={styles.textWrapper}>
                     <Text style={styles.itemText}>Xác thực 2 bước (2FA)</Text>

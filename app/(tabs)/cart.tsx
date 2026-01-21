@@ -2,40 +2,36 @@ import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Keyboard,
-  KeyboardAvoidingView,
-  LayoutAnimation,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  UIManager,
-  View
+    ActivityIndicator,
+    Alert,
+    Image,
+    Keyboard,
+    KeyboardAvoidingView,
+    LayoutAnimation,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    UIManager,
+    View
 } from "react-native";
 import { GestureHandlerRootView, Swipeable } from "react-native-gesture-handler";
 import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-// 🔥 IMPORT WEBVIEW
 import { WebView } from 'react-native-webview';
 
 import { CartItem, useCart } from "../../components/ui/CartContext";
 
-// 🔥 LƯU Ý QUAN TRỌNG: Kiểm tra lại đường dẫn file này tùy vào cấu trúc thư mục của bạn
-// Nếu file này nằm ở thư mục gốc (ngang hàng folder app), dùng ../..
 import { createPaymentUrl } from "../vnpayHelper";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-// 1. DANH SÁCH PHƯƠNG THỨC THANH TOÁN
 const PAYMENT_METHODS = [
     { id: 'cash', name: 'Tiền mặt', icon: 'cash', color: '#22c55e', description: 'Thanh toán khi nhận hàng' },
     { id: 'zalopay', name: 'ZaloPay', icon: 'qrcode-scan', color: '#0068ff', description: 'Quét mã QR ZaloPay' },
@@ -64,11 +60,9 @@ export default function CartScreen() {
   const [paymentMethod, setPaymentMethod] = useState('cash'); 
   const [modalPaymentVisible, setModalPaymentVisible] = useState(false);
   
-  // --- STATE CHO ZALO PAY ---
   const [modalQRVisible, setModalQRVisible] = useState(false);
   const [qrValue, setQrValue] = useState(""); 
   
-  // --- 🔥 STATE CHO VNPAY ---
   const [modalVnPayVisible, setModalVnPayVisible] = useState(false);
   const [vnpayUrl, setVnpayUrl] = useState("");
 
@@ -83,7 +77,6 @@ export default function CartScreen() {
 
   const getUniqueId = (item: CartItem) => item.cartItemId || item.id;
 
-  // FETCH MÓN GỢI Ý
   useEffect(() => {
     const fetchSuggested = async () => {
       try {
@@ -148,7 +141,6 @@ export default function CartScreen() {
     </TouchableOpacity>
   );
 
-  // --- XỬ LÝ ĐẶT HÀNG ---
   const handleCheckout = async () => {
       if(cart.length === 0) return;
       setIsSubmitting(true);
@@ -200,13 +192,11 @@ export default function CartScreen() {
             const orderId = result.name.split("/").pop();
             setCurrentOrderId(orderId);
 
-            // 1. ZALO PAY
             if (paymentMethod === 'zalopay') {
                 const fakeZaloPayUrl = `https://zalopay.vn/pay?order=${orderId}&amount=${total}`;
                 setQrValue(fakeZaloPayUrl); 
                 setModalQRVisible(true);    
             } 
-            // 2. 🔥 VNPAY (Đã sửa lại logic cho đúng)
             else if (paymentMethod === 'vnpay') {
                 const amountVND = Math.floor(total * 25000); // Quy đổi ra VND
                 const url = createPaymentUrl(amountVND);
@@ -215,7 +205,6 @@ export default function CartScreen() {
                 setVnpayUrl(url);
                 setModalVnPayVisible(true);
             }
-            // 3. TIỀN MẶT
             else {
                 Alert.alert("🎉 Đặt hàng thành công!", `Thanh toán bằng: ${currentPayment.name}`);
                 clearCart();
@@ -233,7 +222,6 @@ export default function CartScreen() {
       }
   };
 
-  // CẬP NHẬT TRẠNG THÁI ORDER THÀNH CÔNG
   const updateOrderStatusToKitchen = async () => {
     if (!currentOrderId) return;
     
@@ -256,7 +244,6 @@ export default function CartScreen() {
     }
   };
 
-  // XỬ LÝ ZALOPAY
   const handleFinishZaloPayment = async () => {
       setIsSubmitting(true);
       await updateOrderStatusToKitchen();
@@ -266,7 +253,6 @@ export default function CartScreen() {
       setIsSubmitting(false);
   };
 
-  // 🔥 XỬ LÝ VNPAY (Khi WebView thay đổi URL)
   const handleVnpayStateChange = async (navState: any) => {
     const { url } = navState;
 
@@ -455,7 +441,6 @@ export default function CartScreen() {
               </TouchableWithoutFeedback>
           </Modal>
 
-          {/* MODAL QR CODE (ZaloPay) */}
           <Modal animationType="fade" transparent={true} visible={modalQRVisible} onRequestClose={() => setModalQRVisible(false)}>
               <View style={styles.modalOverlay}>
                   <View style={[styles.modalContainer, { alignItems: 'center', paddingVertical: 40 }]}>
@@ -472,7 +457,6 @@ export default function CartScreen() {
               </View>
           </Modal>
 
-          {/* 🔥🔥 MODAL WEBVIEW VNPAY (ĐÃ SỬA VÀ CHECK KỸ) 🔥🔥 */}
           <Modal animationType="slide" visible={modalVnPayVisible} onRequestClose={() => setModalVnPayVisible(false)}>
               <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
                   <View style={styles.header}>

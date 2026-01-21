@@ -228,7 +228,6 @@ export default function Profile() {
           </View>
         </View>
 
-        {/* Menu Section */}
         <View style={styles.menuContainer}>
           <Text style={styles.sectionTitle}>Tài khoản</Text>
           <MenuItem icon="location-outline" label="Địa chỉ giao hàng" onPress={() => router.push("/address")} />
@@ -241,7 +240,6 @@ export default function Profile() {
           <MenuItem icon="settings-outline" label="Cài đặt chung" onPress={() => router.push("/setting")} />
         </View>
 
-        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
           <Text style={styles.logoutText}>Đăng xuất</Text>
@@ -250,7 +248,6 @@ export default function Profile() {
         <Text style={styles.version}>Phiên bản 1.0.0</Text>
       </ScrollView>
 
-      {/* --- MODAL CHỈNH SỬA --- */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -271,7 +268,6 @@ export default function Profile() {
                             </TouchableOpacity>
                         </View>
 
-                        {/* Ô nhập Tên */}
                         <View style={{marginBottom: 16}}>
                             <Text style={styles.inputLabel}>Tên hiển thị</Text>
                             <TextInput 
@@ -282,13 +278,11 @@ export default function Profile() {
                             />
                         </View>
                         
-                        {/* KẺ NGANG PHÂN CÁCH */}
                         <View style={{height: 1, backgroundColor: '#EEE', marginVertical: 10}} />
                         <Text style={{fontSize: 14, fontWeight: 'bold', color: '#FF6B00', marginBottom: 10}}>
                             Đổi mật khẩu (Tùy chọn)
                         </Text>
 
-                         {/* BƯỚC 1: NHẬP MẬT KHẨU CŨ & VERIFY */}
                          <View style={{marginBottom: 16}}>
                             <Text style={styles.inputLabel}>
                                 1. Mật khẩu hiện tại <Text style={{color:'red'}}>*</Text>
@@ -311,7 +305,6 @@ export default function Profile() {
                                 </TouchableOpacity>
                             </View>
 
-                            {/* Nút Verify: Chỉ hiện khi chưa xác thực và đã nhập chữ */}
                             {!isVerified && oldPassword.length > 0 && (
                                 <TouchableOpacity 
                                     style={styles.verifyBtn} 
@@ -327,7 +320,6 @@ export default function Profile() {
                             )}
                         </View>
 
-                        {/* BƯỚC 2: NHẬP MẬT KHẨU MỚI (CHỈ MỞ KHI ĐÃ VERIFY) */}
                         <View style={{marginBottom: 16, opacity: isVerified ? 1 : 0.5}}>
                             <Text style={styles.inputLabel}>
                                 2. Mật khẩu mới {isVerified ? "" : "(Bị khóa - Cần xác thực ở trên)"}
@@ -347,7 +339,6 @@ export default function Profile() {
                             </View>
                         </View>
 
-                        {/* Email Read-only */}
                         <View style={{marginBottom: 20}}>
                             <Text style={styles.inputLabel}>Email (Không thể sửa)</Text>
                             <TextInput 
@@ -357,7 +348,6 @@ export default function Profile() {
                             />
                         </View>
 
-                        {/* NÚT LƯU */}
                         <TouchableOpacity 
                             style={styles.saveBtn} 
                             onPress={handleUpdateProfile}
@@ -378,7 +368,6 @@ export default function Profile() {
   );
 }
 
-// Component Menu Item
 function MenuItem({ icon, label, onPress }: { icon: any; label: string; onPress: () => void }) {
   return (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
@@ -391,7 +380,6 @@ function MenuItem({ icon, label, onPress }: { icon: any; label: string; onPress:
   );
 }
 
-// Styles
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#F5F5F8" },
   container: { flex: 1 },
@@ -422,7 +410,6 @@ const styles = StyleSheet.create({
   logoutText: { color: "#FF3B30", fontWeight: "bold", fontSize: 16, marginLeft: 8 },
   version: { textAlign: "center", color: "#AAA", fontSize: 12, marginTop: 20, marginBottom: 20 },
 
-  // MODAL CSS
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
   modalContent: { backgroundColor: 'white', borderRadius: 20, padding: 20, elevation: 5 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
@@ -430,7 +417,6 @@ const styles = StyleSheet.create({
   inputLabel: { fontSize: 14, fontWeight: '600', color: '#666', marginBottom: 8 },
   input: { backgroundColor: '#F5F5F8', borderRadius: 12, padding: 14, fontSize: 16, borderWidth: 1, borderColor: '#eee', color: '#333' },
   
-  // Password Input CSS
   passwordContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F8', borderRadius: 12, borderWidth: 1, borderColor: '#eee' },
   passwordInput: { flex: 1, padding: 14, fontSize: 16, color: '#333' },
   eyeIcon: { padding: 14 },
@@ -438,7 +424,6 @@ const styles = StyleSheet.create({
   saveBtn: { backgroundColor: '#FF6B00', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 10, shadowColor: "#FF6B00", shadowOpacity: 0.3, shadowOffset: {width: 0, height: 4}, elevation: 5 },
   saveBtnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
 
-  // Nút xác thực mật khẩu cũ
   verifyBtn: { alignSelf: 'flex-end', backgroundColor: '#333', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8, marginTop: 8 },
   verifyBtnText: { color: '#FFF', fontSize: 12, fontWeight: 'bold' }
 });

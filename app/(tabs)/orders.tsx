@@ -57,7 +57,6 @@ export default function Orders({ onOrderClick }: OrdersProps) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Header tránh notch */}
         <View style={[styles.header, { paddingTop: insets.top }]}>
           <Text style={styles.headerTitle}>Đơn Hàng</Text>
         </View>
@@ -66,7 +65,6 @@ export default function Orders({ onOrderClick }: OrdersProps) {
           contentContainerStyle={{ padding: 16 }}
           contentInsetAdjustmentBehavior="never"
         >
-          {/* Active Order */}
           {activeOrder && (
             <View style={{ marginBottom: 24 }}>
               <Text style={styles.sectionTitle}>Hoạt động</Text>
@@ -85,7 +83,6 @@ export default function Orders({ onOrderClick }: OrdersProps) {
                   </Text>
                 </View>
 
-                {/* Steps */}
                 <View style={styles.cardSection}>
                   <View style={styles.rowBetween}>
                     <View style={styles.row}>
@@ -110,7 +107,6 @@ export default function Orders({ onOrderClick }: OrdersProps) {
                   </View>
                 </View>
 
-                {/* Driver */}
                 {activeOrder.driver && (
                   <View style={styles.cardSection}>
                     <Text style={styles.subText}>Đối tác giao hàng của bạn</Text>
@@ -135,7 +131,6 @@ export default function Orders({ onOrderClick }: OrdersProps) {
                   </View>
                 )}
 
-                {/* Order Details */}
                 <View style={styles.cardSection}>
                   <View style={styles.row}>
                     <Image
@@ -158,7 +153,6 @@ export default function Orders({ onOrderClick }: OrdersProps) {
             </View>
           )}
 
-          {/* Past Orders */}
           <Text style={styles.sectionTitle}>Đơn hàng trước đây</Text>
           {pastOrders.map((order) => (
             <TouchableOpacity

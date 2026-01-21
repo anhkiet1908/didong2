@@ -92,10 +92,8 @@ const styles = StyleSheet.create({
   itemText: { fontSize: 16, fontWeight: "500", marginLeft: 12 },
   valueText: { fontSize: 15, color: "#8E8E93" },
 
-  // Icon vuông bo góc
   iconBox: { width: 30, height: 30, borderRadius: 8, justifyContent: "center", alignItems: "center" },
 
-  // Đường kẻ phân cách
   separator: { height: 1, backgroundColor: "#F2F2F7", marginLeft: 58 },
 
   footerText: { textAlign: "center", marginTop: 20, color: "#999", fontSize: 13 },

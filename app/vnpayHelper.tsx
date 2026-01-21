@@ -41,21 +41,17 @@ export const createPaymentUrl = (amount: number): string => {
         })
         .join('&');
 
-    // 5. Tạo chữ ký (HMAC SHA512)
     const hmac = CryptoJS.HmacSHA512(signData, VNP_HASH_SECRET);
     const signed = hmac.toString(CryptoJS.enc.Hex);
 
-    // 6. Gán chữ ký vào tham số
     sortedParams['vnp_SecureHash'] = signed;
 
-    // 7. Tạo URL cuối cùng
     const finalQueryString = Object.keys(sortedParams)
         .map(key => {
             return `${encodeURIComponent(key)}=${encodeURIComponent(sortedParams[key])}`;
         })
         .join('&');
     
-    // Log kiểm tra
     console.log("--- VNPAY FIX SIGNATURE ---");
     console.log("Chuỗi ký mới (Encoded):", signData);
     console.log("Chữ ký:", signed);
@@ -63,7 +59,6 @@ export const createPaymentUrl = (amount: number): string => {
     return `${VNP_URL}?${finalQueryString}`;
 };
 
-// Hàm sắp xếp object
 const sortObject = (obj: any): any => {
     const sorted: any = {};
     const keys = Object.keys(obj).sort();

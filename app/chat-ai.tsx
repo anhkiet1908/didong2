@@ -161,22 +161,18 @@ const [activeModel, setActiveModel] = useState<string>("gemini-1.5-flash");
     if (!input.trim()) return;
     const msgText = input;
     
-    // 1. Hiện tin nhắn user ngay lập tức
     const newMsgUser: IMessage = { id: Date.now().toString(), sender: "user", text: msgText };
     setMessages(prev => [...prev, newMsgUser]);
     setInput("");
     setTyping(true);
 
-    // 2. Gọi AI
     const reply = await callGeminiAPI(msgText);
 
-    // 3. Hiện tin nhắn bot
     const newMsgBot: IMessage = { id: (Date.now()+1).toString(), sender: "bot", text: reply };
     setMessages(prev => [...prev, newMsgBot]);
     setTyping(false);
   };
 
-  // Hàm xóa lịch sử chat
   const clearHistory = async () => {
       Alert.alert("Xóa lịch sử", "Bạn có chắc muốn xóa hết tin nhắn không?", [
           { text: "Hủy", style: "cancel" },
